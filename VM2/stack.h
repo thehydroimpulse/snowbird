@@ -9,7 +9,7 @@
 #ifndef VM2_stack_h
 #define VM2_stack_h
 
-#include "vm.h"
+struct VirtualMachine {};
 
 typedef struct {
     
@@ -18,6 +18,7 @@ typedef struct {
 } stack;
 
 
-int create_stack(VirtualMachine* vm_instance);
+int create_stack(struct VirtualMachine* vm_instance);
+int delete_stack(struct VirtualMachine* vm_instance);
 
 #endif

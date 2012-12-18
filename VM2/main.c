@@ -67,8 +67,21 @@ void run() {
 
 int main(int argc, const char * argv[])
 {
-    printf("Value#1: %x \n", program[1]);
-    run();
+    //printf("Value#1: %x \n", program[1]);
+    //run();
+    
+    /** Start the real virtual machine **/
+    VirtualMachine* vm = create_vm();
+    
+    /** Delete the virtual machine once it's done. **/
+    int result = delete_vm(vm);
+    
+    if (result != 0) {
+        printf("**|| Virtual Machine could not be deleted.");
+    }
+    
+    printf("**|| Virtual Machine was deleted.");
+    
     return 0;
 }
 
