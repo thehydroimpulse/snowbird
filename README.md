@@ -38,6 +38,7 @@ The language would be somewhat simple, nothing huge.
 
 
 # License
+*MIT*
 
 Copyright (C) 2012-2013 Daniel Fagnan
 
