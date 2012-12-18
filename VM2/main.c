@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "vm.h"
 #define NUM_REGS 4
 unsigned regs[ NUM_REGS ];
 
@@ -67,6 +67,7 @@ void run() {
 
 int main(int argc, const char * argv[])
 {
+    printf("Value#1: %x \n", program[1]);
     run();
     return 0;
 }

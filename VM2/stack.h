@@ -1,0 +1,23 @@
+//
+//  stack.h
+//  VM2
+//
+//  Created by Daniel Fagnan on 2012-12-17.
+//  Copyright (c) 2012 Daniel Fagnan. All rights reserved.
+//
+
+#ifndef VM2_stack_h
+#define VM2_stack_h
+
+#include "vm.h"
+
+typedef struct {
+    
+    
+    
+} stack;
+
+
+int create_stack(VirtualMachine* vm_instance);
+
+#endif
