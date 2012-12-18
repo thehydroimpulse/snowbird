@@ -28,6 +28,13 @@ typedef struct {
     
 } stack;
 
+typedef struct {
+    
+    int size; // code size;
+    // Array of code split by machine code separation / separate instructions.
+    int code[];
+    
+} program;
 
 typedef struct {
     
@@ -37,13 +44,6 @@ typedef struct {
     program* current_pr;
     
 } cpu;
-
-typedef struct {
-    
-    int size; // code size;
-    unsigned long int code; // code;
-    
-} program;
 
 // Prototypes for creating and deleting the CPU.
 cpu* create_cpu();
@@ -62,6 +62,7 @@ void   reset_stack(stack*);
 program* create_program();
 void     free_program(program*);
 void     reset_program(program*);
+void     load_program(program*, FILE*);
 
 int main(int argc, const char * argv[]) {
     
@@ -99,7 +100,8 @@ void reset_registers(cpu* cpu_instance) {
 void free_cpu(cpu* cpu_instance) {
    
     
-    free(cpu_instance->stack);
+    free_stack(cpu_instance->stack);
+    free_program(cpu_instance->current_pr);
     free(cpu_instance);
     
    
@@ -116,9 +118,7 @@ void run_cpu(cpu* cpu_instance) {
 }
 
 stack* create_stack() {
-    
     stack* local_stack = (stack*)malloc(sizeof(stack));
-    
     return local_stack;
 }
 
@@ -128,4 +128,25 @@ void reset_stack(stack* local_stack) {
 }
 
 
+void free_stack(stack* local_stack) {
+    free(local_stack);
+}
+
+program* create_program() {
+    program* local_pr = (program*)malloc(sizeof(program));
+    return local_pr;
+}
+
+void load_program(program* local_pr, FILE* file) {
+    
+}
+
+void reset_program(program* local_pr) {
+    //memset(local_pr->code, 0, sizeof(local_pr->code));
+    local_pr->size = 0;
+}
+
+void free_program(program* local_pr) {
+    free(local_pr);
+}
 
