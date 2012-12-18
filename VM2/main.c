@@ -42,6 +42,12 @@ typedef struct {
     int registers[8];
     int running;
     program* current_pr;
+    int instruction_reg;
+    int overflow;
+    int status;
+    int underflow;
+    int temp;
+    int max;
     
 } cpu;
 
@@ -52,6 +58,7 @@ void reset_cpu(cpu*);
 void reset_registers(cpu*);
 void run_cpu(cpu*);
 
+void dump_registers(cpu*);
 
 // Prototypes for the stack.
 stack* create_stack();
@@ -90,6 +97,7 @@ cpu* create_cpu() {
 void reset_cpu(cpu* cpu_instance) {
     reset_stack(cpu_instance->stack);
     reset_registers(cpu_instance);
+    cpu_instance->max = 255;
 }
 
 void reset_registers(cpu* cpu_instance) {
@@ -107,13 +115,79 @@ void free_cpu(cpu* cpu_instance) {
    
 }
 
-void run_cpu(cpu* cpu_instance) {
+void dump_registers(cpu* cp) {
     
-    while(cpu_instance->running) {
+    printf("CPU Registers: \n");
+    
+    for(int i = 0; i<8; i++)
+        printf("Register %i [%i]\n", i, cp->registers[i]);
+    
+    printf("Status [%i]\n", cp->status);
+    printf("Overflow [%i]\n", cp->overflow);
+    printf("Underflow [%i]\n", cp->underflow);
+    printf("PC [%i]\n", cp->stack->pc);
+    printf("IReg [%i]\n", cp->instruction_reg);
+}
+
+void run_cpu(cpu* i) {
+    i->status = 1;
+    while(i->running) {
+        // Get the next instruction:
+        i->instruction_reg = i->current_pr->code[i->stack->pc];
+        // Increment the pointer to the next instruction:
+        i->stack->pc++;
         
+        // OpCodes:
+        switch(i->instruction_reg) {
+            case LOAD0:
+                i->registers[0] = i->current_pr->code[ i->stack->pc ];
+                i->stack->pc++;
+                break;
+            case LOAD1:
+                i->registers[1] = i->current_pr->code[ i->stack->pc ];
+                i->stack->pc++;
+                break;
+            case ADD:
+                i->temp = i->registers[0] + i->registers[1];
+                if (i->temp > i->max) {
+                    i->overflow = 1;
+                    i->temp = i->max;
+                }
+                i->registers[0] = i->temp;
+                break;
+            case SUBSTRACT:
+                i->temp = i->registers[0] - i->registers[1];
+                if (i->temp < 0) {
+                    i->underflow = 1;
+                    i->temp = 0;
+                }
+                i->registers[0] = i->temp;
+                break;
+            case STORE0:
+                i->current_pr->code[i->stack->pc] = i->registers[0];
+                i->stack->pc++;
+                break;
+            case STORE1:
+                i->current_pr->code[i->stack->pc] = i->registers[1];
+                i->stack->pc++;
+                break;
+            default:
+                printf("Instruction Fault at: %i", i->stack->pc);
+                i->status = 0;
+                dump_registers(i);
+                return;
+                break;
+        }
         
-        
+        // Check the size of the instructions left.
+        if (i->current_pr->size <= i->stack->pc)
+        {
+            i->running = 0;
+            break;
+        }
     }
+    
+    
     
 }
 
@@ -142,7 +216,7 @@ void load_program(program* local_pr, FILE* file) {
 }
 
 void reset_program(program* local_pr) {
-    //memset(local_pr->code, 0, sizeof(local_pr->code));
+    //memset(local_pr->code, 0, local_pr->code.size());
     local_pr->size = 0;
 }
 
