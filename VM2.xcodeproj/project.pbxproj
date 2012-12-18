@@ -7,11 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6598038E168006C5003FBB02 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 6598038D168006C5003FBB02 /* main.c */; };
-		65FB93A616802ACB00308AF3 /* vm.c in Sources */ = {isa = PBXBuildFile; fileRef = 65FB93A516802ACB00308AF3 /* vm.c */; };
-		65FB93A916802AF500308AF3 /* stack.c in Sources */ = {isa = PBXBuildFile; fileRef = 65FB93A816802AF500308AF3 /* stack.c */; };
-		65FB93B11680314700308AF3 /* program.c in Sources */ = {isa = PBXBuildFile; fileRef = 65FB93B01680314700308AF3 /* program.c */; };
-		65FB93B41680340C00308AF3 /* registers.c in Sources */ = {isa = PBXBuildFile; fileRef = 65FB93B31680340C00308AF3 /* registers.c */; };
+		65FB93B81680CD3F00308AF3 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 65FB93B71680CD3F00308AF3 /* main.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,16 +24,7 @@
 
 /* Begin PBXFileReference section */
 		65980389168006C5003FBB02 /* VM2 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = VM2; sourceTree = BUILT_PRODUCTS_DIR; };
-		6598038D168006C5003FBB02 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		65FB93A4168029D900308AF3 /* vm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vm.h; sourceTree = "<group>"; };
-		65FB93A516802ACB00308AF3 /* vm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vm.c; sourceTree = "<group>"; };
-		65FB93A716802ADA00308AF3 /* stack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stack.h; sourceTree = "<group>"; };
-		65FB93A816802AF500308AF3 /* stack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stack.c; sourceTree = "<group>"; };
-		65FB93AE1680313E00308AF3 /* program.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = program.h; sourceTree = "<group>"; };
-		65FB93B01680314700308AF3 /* program.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = program.c; sourceTree = "<group>"; };
-		65FB93B21680331700308AF3 /* registers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = registers.h; sourceTree = "<group>"; };
-		65FB93B31680340C00308AF3 /* registers.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = registers.c; sourceTree = "<group>"; };
-		65FB93B51680367400308AF3 /* call.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = call.h; sourceTree = "<group>"; };
+		65FB93B71680CD3F00308AF3 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,16 +57,7 @@
 		6598038C168006C5003FBB02 /* VM2 */ = {
 			isa = PBXGroup;
 			children = (
-				6598038D168006C5003FBB02 /* main.c */,
-				65FB93A4168029D900308AF3 /* vm.h */,
-				65FB93A516802ACB00308AF3 /* vm.c */,
-				65FB93A716802ADA00308AF3 /* stack.h */,
-				65FB93A816802AF500308AF3 /* stack.c */,
-				65FB93AE1680313E00308AF3 /* program.h */,
-				65FB93B01680314700308AF3 /* program.c */,
-				65FB93B21680331700308AF3 /* registers.h */,
-				65FB93B31680340C00308AF3 /* registers.c */,
-				65FB93B51680367400308AF3 /* call.h */,
+				65FB93B71680CD3F00308AF3 /* main.c */,
 			);
 			path = VM2;
 			sourceTree = "<group>";
@@ -135,11 +113,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6598038E168006C5003FBB02 /* main.c in Sources */,
-				65FB93A616802ACB00308AF3 /* vm.c in Sources */,
-				65FB93A916802AF500308AF3 /* stack.c in Sources */,
-				65FB93B11680314700308AF3 /* program.c in Sources */,
-				65FB93B41680340C00308AF3 /* registers.c in Sources */,
+				65FB93B81680CD3F00308AF3 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -25,10 +25,9 @@ void insertArray(CArray *a, struct call element);
 void freeArray(CArray *a);
 
 typedef struct {
-    
-    short int n; // dumby;
+    int esp; // Stack Pointer Register;
+    int ebp; // Base Pointer Register;
     CArray calls;
-    
 } stack;
 
 

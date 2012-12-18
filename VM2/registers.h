@@ -11,9 +11,10 @@
 
 typedef struct {
     short int n; // dumby. Because we can't have a flexible array member inside an empty struct.
-    int values[];
+    int values[8]; 
+    char cross[8];
 } Registers;
 
-Registers* create_registers();
+void create_registers(Registers*);
 
 #endif
