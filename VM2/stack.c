@@ -26,12 +26,14 @@ stack* create_stack(struct VirtualMachine* vm) {
     stack* local_stack = (stack*)malloc(sizeof(stack) + size);
     
     // Initialize memory allocation for `items` call array:
-    local_stack->items = malloc(size);
+    local_stack->items = (struct call*)calloc(2, size);
     
-    printf("\nCall Array Size: %li", sizeof(local_stack->items));
+    printf("\nCall Size: %li \nCall Array Size: %li\n", sizeof(call), sizeof(local_stack->items));
     
     return local_stack;
 }
+
+
 
 int delete_stack(struct VirtualMachine* vm_instance) {
     

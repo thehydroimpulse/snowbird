@@ -15,7 +15,7 @@ struct call {};
 typedef struct {
     
     short int n; // dumby;
-    struct call items[];
+    struct call *items;
     
 } stack;
 
