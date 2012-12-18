@@ -32,7 +32,7 @@ typedef struct {
     
     int size; // code size;
     // Array of code split by machine code separation / separate instructions.
-    int code[];
+    int code[7];
     
 } program;
 
@@ -75,10 +75,10 @@ int main(int argc, const char * argv[]) {
     
     cpu* g_cpu = create_cpu();
     
-    int code[2] = {0x01, 0x02};
+    int code[7] = {LOAD0, 0, LOAD1, 7, ADD, STORE0, 255};
     
     // Load program:
-    load_program(g_cpu->current_pr, NULL, code, 2);
+    load_program(g_cpu->current_pr, NULL, code, 7);
     
     // Run Program:
     run_cpu(g_cpu);
@@ -125,16 +125,21 @@ void free_cpu(cpu* cpu_instance) {
 
 void dump_registers(cpu* cp) {
     
-    printf("CPU Registers: \n");
+    printf("\n\n\nCPU Registers: \n");
     
     for(int i = 0; i<8; i++)
-        printf("Register %i [%i]\n", i, cp->registers[i]);
+        printf("Register %i [%i] | ", i, cp->registers[i]);
     
-    printf("Status [%i]\n", cp->status);
-    printf("Overflow [%i]\n", cp->overflow);
-    printf("Underflow [%i]\n", cp->underflow);
-    printf("PC [%i]\n", cp->stack->pc);
-    printf("IReg [%i]\n", cp->instruction_reg);
+    printf("\nStatus [%i] | ", cp->status);
+    printf("Overflow [%i] | ", cp->overflow);
+    printf("Underflow [%i] | ", cp->underflow);
+    printf("PC [%i] | ", cp->stack->pc);
+    printf("IReg [%i] | ", cp->instruction_reg);
+    printf("Instructions {\n");
+    for(int i = 0; i<cp->current_pr->size; i++) {
+        printf("[%i]", cp->current_pr->code[i]);
+    }
+    printf("}\n");
 }
 
 void run_cpu(cpu* i) {
@@ -227,7 +232,7 @@ void load_program(program* local_pr, FILE* file, int code[], int size) {
         for (int i = 0; i<size; i++) {
             local_pr->code[i] = code[i];
         }
-        local_pr->size = sizeof(code);
+        local_pr->size = size;
     } else
     {
         
