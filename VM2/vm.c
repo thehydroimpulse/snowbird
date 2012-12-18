@@ -7,4 +7,16 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "vm.h"
+
+VirtualMachine* create_vm() {
+    // Create the virtual machine within the heap.
+    VirtualMachine* local_vm = (VirtualMachine*)malloc(sizeof(VirtualMachine));
+    
+    return NULL;
+}
+
+int delete_vm() {
+    return 0;
+}

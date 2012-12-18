@@ -77,11 +77,11 @@ int main(int argc, const char * argv[])
     int result = delete_vm(vm);
     
     if (result != 0) {
-        printf("**|| Virtual Machine could not be deleted.");
+        printf("** Virtual Machine could not be deleted. **\n");
+    } else {
+        printf("** Virtual Machine was deleted. **\n");
     }
-    
-    printf("**|| Virtual Machine was deleted.");
-    
+
     return 0;
 }
 
