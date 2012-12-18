@@ -13,14 +13,30 @@ struct VirtualMachine {};
 struct call {};
 
 typedef struct {
+    struct call *array;
+    size_t used;
+    size_t size;
+} CArray;
+
+void initArray(CArray *a, size_t initialSize);
+
+void insertArray(CArray *a, struct call element);
+
+void freeArray(CArray *a);
+
+typedef struct {
     
     short int n; // dumby;
-    struct call *items;
+    CArray calls;
     
 } stack;
 
 
 stack* create_stack(struct VirtualMachine* vm_instance);
 int delete_stack(struct VirtualMachine* vm_instance);
+
+void push_stack(struct VirtualMachine* vm_instance);
+void pop_stack(struct VirtualMachine* vm_instance);
+
 
 #endif

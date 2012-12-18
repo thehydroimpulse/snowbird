@@ -13,6 +13,26 @@
 #include "registers.h"
 
 
+void initArray(CArray *a, size_t initialSize) {
+    a->array = (struct call *)malloc(initialSize * sizeof(struct call));
+    a->used = 0;
+    a->size = initialSize;
+}
+
+void insertArray(CArray *a, struct call element) {
+    if (a->used == a->size) {
+        a->size *= 2;
+        a->array = (struct call *)realloc(a->array, a->size * sizeof(struct call));
+    }
+    a->array[a->used++] = element;
+}
+
+void freeArray(CArray *a) {
+    free(a->array);
+    a->array = NULL;
+    a->used = a->size = 0;
+}
+
 stack* create_stack(struct VirtualMachine* vm) {
     
     printf("** Created a new stack. **\n");
@@ -26,14 +46,21 @@ stack* create_stack(struct VirtualMachine* vm) {
     stack* local_stack = (stack*)malloc(sizeof(stack) + size);
     
     // Initialize memory allocation for `items` call array:
-    local_stack->items = (struct call*)calloc(2, size);
+    initArray(&local_stack->calls, 5);
     
-    printf("\nCall Size: %li \nCall Array Size: %li\n", sizeof(call), sizeof(local_stack->items));
+    printf("\nCall Size: %li \nCall Array Size: %li\n", sizeof(CArray), sizeof(local_stack->calls));
     
     return local_stack;
 }
 
+// Add another call item on the top of the stack:
+void push_stack(struct VirtualMachine* vm_instance) {
+    
+}
 
+void pop_stack(struct VirtualMachine* vm_instance) {
+    
+}
 
 int delete_stack(struct VirtualMachine* vm_instance) {
     
