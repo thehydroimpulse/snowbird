@@ -11,6 +11,7 @@
 		65FB93A616802ACB00308AF3 /* vm.c in Sources */ = {isa = PBXBuildFile; fileRef = 65FB93A516802ACB00308AF3 /* vm.c */; };
 		65FB93A916802AF500308AF3 /* stack.c in Sources */ = {isa = PBXBuildFile; fileRef = 65FB93A816802AF500308AF3 /* stack.c */; };
 		65FB93B11680314700308AF3 /* program.c in Sources */ = {isa = PBXBuildFile; fileRef = 65FB93B01680314700308AF3 /* program.c */; };
+		65FB93B41680340C00308AF3 /* registers.c in Sources */ = {isa = PBXBuildFile; fileRef = 65FB93B31680340C00308AF3 /* registers.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -34,6 +35,9 @@
 		65FB93A816802AF500308AF3 /* stack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stack.c; sourceTree = "<group>"; };
 		65FB93AE1680313E00308AF3 /* program.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = program.h; sourceTree = "<group>"; };
 		65FB93B01680314700308AF3 /* program.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = program.c; sourceTree = "<group>"; };
+		65FB93B21680331700308AF3 /* registers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = registers.h; sourceTree = "<group>"; };
+		65FB93B31680340C00308AF3 /* registers.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = registers.c; sourceTree = "<group>"; };
+		65FB93B51680367400308AF3 /* call.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = call.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +77,9 @@
 				65FB93A816802AF500308AF3 /* stack.c */,
 				65FB93AE1680313E00308AF3 /* program.h */,
 				65FB93B01680314700308AF3 /* program.c */,
+				65FB93B21680331700308AF3 /* registers.h */,
+				65FB93B31680340C00308AF3 /* registers.c */,
+				65FB93B51680367400308AF3 /* call.h */,
 			);
 			path = VM2;
 			sourceTree = "<group>";
@@ -132,6 +139,7 @@
 				65FB93A616802ACB00308AF3 /* vm.c in Sources */,
 				65FB93A916802AF500308AF3 /* stack.c in Sources */,
 				65FB93B11680314700308AF3 /* program.c in Sources */,
+				65FB93B41680340C00308AF3 /* registers.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

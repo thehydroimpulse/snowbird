@@ -10,6 +10,7 @@
 #define VM2_vm_h
 
 struct stack {};
+struct Registers {};
 
 /**
  * Create a new VirtualMachine struct with a new typedef.
@@ -19,6 +20,8 @@ typedef struct {
     
     // Store the call stack;
     struct stack* call_stack; // Pointer to the location of the stack
+    
+    struct Registers* reg;
     
 } VirtualMachine;
 
