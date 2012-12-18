@@ -69,12 +69,21 @@ void   reset_stack(stack*);
 program* create_program();
 void     free_program(program*);
 void     reset_program(program*);
-void     load_program(program*, FILE*);
+void     load_program(program*, FILE*, int code[], int size);
 
 int main(int argc, const char * argv[]) {
     
+    cpu* g_cpu = create_cpu();
     
+    int code[2] = {0x01, 0x02};
     
+    // Load program:
+    load_program(g_cpu->current_pr, NULL, code, 2);
+    
+    // Run Program:
+    run_cpu(g_cpu);
+    
+    free_cpu(g_cpu);
 }
 
 
@@ -87,6 +96,8 @@ cpu* create_cpu() {
     // Allocate / Create a new stack. (priority stack)
     local_cpu->stack = (stack*)create_stack();
     
+    local_cpu->current_pr = (program*)create_program();
+    
     // Reset Registers & Stack.
     reset_cpu(local_cpu);
     
@@ -97,6 +108,7 @@ cpu* create_cpu() {
 void reset_cpu(cpu* cpu_instance) {
     reset_stack(cpu_instance->stack);
     reset_registers(cpu_instance);
+    reset_program(cpu_instance->current_pr);
     cpu_instance->max = 255;
 }
 
@@ -106,13 +118,9 @@ void reset_registers(cpu* cpu_instance) {
 }
 
 void free_cpu(cpu* cpu_instance) {
-   
-    
     free_stack(cpu_instance->stack);
     free_program(cpu_instance->current_pr);
     free(cpu_instance);
-    
-   
 }
 
 void dump_registers(cpu* cp) {
@@ -131,6 +139,7 @@ void dump_registers(cpu* cp) {
 
 void run_cpu(cpu* i) {
     i->status = 1;
+    i->running = 1;
     while(i->running) {
         // Get the next instruction:
         i->instruction_reg = i->current_pr->code[i->stack->pc];
@@ -179,6 +188,8 @@ void run_cpu(cpu* i) {
                 break;
         }
         
+        dump_registers(i);
+        
         // Check the size of the instructions left.
         if (i->current_pr->size <= i->stack->pc)
         {
@@ -186,9 +197,7 @@ void run_cpu(cpu* i) {
             break;
         }
     }
-    
-    
-    
+
 }
 
 stack* create_stack() {
@@ -211,7 +220,18 @@ program* create_program() {
     return local_pr;
 }
 
-void load_program(program* local_pr, FILE* file) {
+void load_program(program* local_pr, FILE* file, int code[], int size) {
+    
+    if (!file)
+    {
+        for (int i = 0; i<size; i++) {
+            local_pr->code[i] = code[i];
+        }
+        local_pr->size = sizeof(code);
+    } else
+    {
+        
+    }
     
 }
 
