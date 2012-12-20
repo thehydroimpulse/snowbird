@@ -231,15 +231,33 @@ void run_cpu(cpu* i) {
         
         // OpCodes:
         switch(i->opcode) {
+            //
+            // @opcode: SET
+            // @args: 2
+            //    b: Register Address
+            //    a: Set Value
+            // @description:
+            //      This opcode takes 2 parameters, b and a. It'll set [a] (value of a) to b (the memory address of
+            //      the pointer)
+            //
             case SET: {
                 i->registers->values[0][0] = i->program->code[ i->program->pc ];
                 //i->program->pc++;
                 int16_t b = i->program->code[ i->program->pc++];
                 int16_t a = i->program->code[ i->program->pc++];
-            
-                // Use b as the index of the register array:
+                // Use b as the index of the register array.
+                // Because the registers' addreses range from [0x00-0x07], we can
+                // treat them as integers, converting them to [0-7].
                 i->registers->values[(short)b][3] = a;
-                printf("SET [%c] 0x0%x, 0x0%x\n", (char*)i->registers->values[(short)b][2], i->program->code[i->program->pc++], i->registers->values[(short)b][3]);
+                
+                // Print the resulting opcode and it's effect:
+                printf(
+                       "SET [%c] 0x0%x, 0x0%x\n",
+                       (int)i->registers->values[(short)b][2],
+                       i->program->code[i->program->pc++],
+                       i->registers->values[(short)b][3]
+                );
+                
                 break;
             }
             case ADD:
