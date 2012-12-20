@@ -424,7 +424,6 @@ void run_cpu(cpu* i) {
                        i->registers->values[(short)i->program->code[ i->registers->pc ]][3] // Registers' value ([b])
                 );
                 
-                printf("\t\tReg: [EX] -> 0x0%x", i->registers->ex);
                 
                 i->registers->pc += 2;
                 break;
@@ -447,7 +446,6 @@ void run_cpu(cpu* i) {
                     
                     i->registers->values[i->program->code[i->registers->pc]][3] = (int16_t)i->registers->ex;
                     
-                    //i->registers->ex = i->registers->ex >> 16;
                 }
                 
                 printf(
@@ -467,9 +465,7 @@ void run_cpu(cpu* i) {
                        XCODE_COLORS_RESET,
                        i->registers->values[(short)i->program->code[ i->registers->pc ]][3] // Registers' value ([b])
                        );
-                
-                printf("\t\tReg: [EX] -> 0x0%x", i->registers->ex);
-                
+
                 i->registers->pc += 2;
                 
                 break;
