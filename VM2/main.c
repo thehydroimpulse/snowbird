@@ -289,29 +289,27 @@ void run_cpu(cpu* i) {
                 // Use b as the index of the register array.
                 // Because the registers' addreses range from [0x00-0x07], we can
                 // treat them as integers, converting them to [0-7].
-                //printf("0x%x", i->program->code[ i->registers->pc+1 ]);
-                i->registers->values[
-                    (short)i->program->code[ i->registers->pc ]
-                ][3] = i->program->code[ i->registers->pc+1 ];
-                // Print the resulting opcode and it's effect:
+                i->registers->values[ i->program->code[ i->registers->pc ] ][3] = i->program->code[ i->registers->pc+1 ];
+                i->registers->pc++;
                 printf(
                        "\t%sSET%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
                        XCODE_COLORS_BG_BLACK,
                        XCODE_COLORS_RESET_BG,
                        XCODE_COLORS_LIGHT_BLUE,
                        (int)i->registers->values[
-                            (short)i->program->code[ i->registers->pc]
+                            i->program->code[ i->registers->pc - 1]
                        ][2], // Fetch the register's associating letter.
                        XCODE_COLORS_RESET,
                        XCODE_COLORS_BLACK,
                        XCODE_COLORS_BG_WHITE,
                        (int)i->registers->values[
-                            (short)i->program->code[ i->registers->pc]
-                       ][0], // Fetch the register's associating letter.
+                            i->program->code[ i->registers->pc - 1]
+                       ][0], // Fetch the register's associating addr.
                        XCODE_COLORS_RESET,
-                       i->registers->values[(short)i->program->code[ i->registers->pc]][3] // Registers' value ([b])
+                       i->registers->values[i->program->code[ i->registers->pc - 1 ]][3] // Registers' value ([b])
                 );
-                //i->registers->pc++;
+            
+                i->registers->pc++;
                 break;
             }
             case ADD:
@@ -380,7 +378,7 @@ void run_cpu(cpu* i) {
                        XCODE_COLORS_RESET
                 );
                 i->status = 0;
-                //dump_registers(i);
+                dump_registers(i);
                 return;
                 break;
         }
