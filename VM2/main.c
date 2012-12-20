@@ -53,16 +53,27 @@ enum opcodes {
     STD = 0x1f
 };
 
+// 1) Register Char Association
+// 2) Register Address
+// 3) Register Value Address
+//    If you would use "[0x08]" you would be accessing
+//    the value of the A register. "[0x09]" = B ...
+uint16_t register_types[8][3] = {
+    {'A', 0x00, 0x08},
+    {'B', 0x01, 0x09},
+    {'C', 0x02, 0x0a},
+    {'X', 0x03, 0x0b},
+    {'Y', 0x04, 0x0c},
+    {'Z', 0x05, 0x0d},
+    {'I', 0x06, 0x0e},
+    {'J', 0x07, 0x0f}
+};
 
-uint16_t register_types[8][2] = {
-    {'A', 0x00},
-    {'B', 0x01},
-    {'C', 0x02},
-    {'X', 0x03},
-    {'Y', 0x04},
-    {'Z', 0x05},
-    {'I', 0x06},
-    {'J', 0x07}
+// [0x1b] = SP's Value
+enum addr {
+    SP = 0x1b,
+    PC = 0x1c,
+    EX = 0x1d
 };
 
 typedef struct {
@@ -138,7 +149,7 @@ int main(int argc, const char * argv[]) {
     cpu* local_cpu = create_cpu();
 
     // Load program:
-    load_program(local_cpu->program, "/Users/Daniel/Desktop/program.hex");
+    load_program(local_cpu->program, "/Users/Daniel/Desktop/p2.hex");
     
     // Run Program:
     run_cpu(local_cpu);
@@ -321,31 +332,46 @@ program* create_program() {
 
 void load_program(program* local_pr, char path[]) {
     
-    if (path) {
+    
         //10000
         //10
-        char buf[200];
-        FILE *file = fopen(path, "r");
-        while (fgets(buf, sizeof(buf), file) != NULL) {
-            unsigned char a[4000];
-            int i = 0;
-            while (buf[i] != '\n') {
-                int b; // must use int with sscanf()
-                sscanf(&buf[i], "%x", &b);
-                a[i] = b;
-                i += 2;
+        //char buf[40];
+        int i = 0;
+        //int rv;
+        int num_values;
+        unsigned int num[80];
+        //int16_t hex = 0;
+        FILE *file = fopen(path, "rt");
+        if (path) {
+            
+            printf("** Loading Program... **\n");
+            
+            while (i < 80 && fscanf(file,"%x",&num[i]) != EOF)
+                i++;
+            
+            fclose(file);
+            
+            num_values = i;
+            
+            printf("Successfully read program data: [");
+            for (i = 0; i < num_values; i++)
+            {
+                local_pr->code[i] = num[i];
+                printf(" 0x%x", num[i]);
             }
             
-            printf("0x%x\n", *a);
-            
-        }
-
+            local_pr->size = num_values;
         
-        fclose(file);
-       
-    } else {
-        printf("** ERROR ** [ Unable to load program file. ]");
-    }
+            printf(" ]");
+            
+            //printf("0x%x", *buf);
+            
+            printf("\n** Done Loading Program. **\n\n");
+            
+            //hex = (int16_t)"0x" + *buf;
+        } else {
+            printf("\n** ERROR ** [ Unable to load program file. ]\n");
+        }
     
 }
 
