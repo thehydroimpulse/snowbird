@@ -205,7 +205,7 @@ int main(int argc, const char * argv[]) {
     cpu* local_cpu = create_cpu();
 
     // Load program:
-    load_program(local_cpu->program, "/Users/Daniel/Desktop/p2.hex");
+    load_program(local_cpu->program, "/Users/Daniel/Documents/VM2/VM2/programs/sub");
     
     // Run Program:
     run_cpu(local_cpu);
@@ -262,8 +262,8 @@ void free_cpu(cpu* cpu_instance) {
 void run_cpu(cpu* i) {
     i->status = 1;
     i->running = 1;
-    printf("%s\n\n\tInstructions\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
-    printf("\n---------------------------------------------------------------------\n");
+    printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+    printf("\n\t---------------------------------------------------------------------\n");
     while(i->running) {
         // Get the next instruction:
         i->opcode = i->program->code[i->registers->pc];
@@ -352,7 +352,47 @@ void run_cpu(cpu* i) {
                 break;
             }
             case SUB:
+            {
+                
+                i->registers->ex = (int16_t)i->registers->values[i->program->code[ i->registers->pc ]][3] - (int16_t)i->program->code[ i->registers->pc + 1 ];
+                
+                i->registers->pc += 1;
+                
+                if ((int16_t)i->program->code[ i->registers->pc - 1 ] > (int16_t)i->registers->values[i->program->code[ i->registers->pc - 2 ]][3])
+                {
+                    // Overflow:
+                    i->registers->ex = 0xffff;
+                    i->underflow = 1;
+                    printf("UNDERFLOW: 0x%x", i->program->code[i->registers->pc-2]);
+                    i->registers->values[i->program->code[i->registers->pc-2]][3] = 0x00;
+                }
+                else
+                {
+                    i->registers->values[i->program->code[i->registers->pc-2]][3] = (int16_t)i->registers->ex;
+                    i->registers->ex = 0x000;
+                }
+                
+                printf(
+                       "\t%sSUB%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
+                       XCODE_COLORS_BG_BLACK,
+                       XCODE_COLORS_RESET_BG,
+                       XCODE_COLORS_LIGHT_BLUE,
+                       (int)i->registers->values[
+                                                 (short)i->program->code[ i->registers->pc-2]
+                                                 ][2], // Fetch the register's associating letter.
+                       XCODE_COLORS_RESET,
+                       XCODE_COLORS_BLACK,
+                       XCODE_COLORS_BG_WHITE,
+                       (int)i->registers->values[
+                                                 (short)i->program->code[ i->registers->pc-2]
+                                                 ][0], // Fetch the register's associating letter.
+                       XCODE_COLORS_RESET,
+                       i->registers->values[(short)i->program->code[ i->registers->pc - 2]][3] // Registers' value ([b])
+                       );
+                
+                i->registers->pc += 1;
                 break;
+            }
             // Store in the stack:
             case MUL:
                 
@@ -386,7 +426,7 @@ void run_cpu(cpu* i) {
         //dump_registers(i);
         
         // Check the size of the instructions left.
-        if (i->registers->pc > i->program->size)
+        if (i->registers->pc >= i->program->size)
         {
             i->running = 0;
             break;
