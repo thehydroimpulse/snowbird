@@ -54,7 +54,7 @@ enum opcodes {
 };
 
 
-int register_types[8][2] = {
+uint16_t register_types[8][2] = {
     {'A', 0x00},
     {'B', 0x01},
     {'C', 0x02},
@@ -66,11 +66,17 @@ int register_types[8][2] = {
 };
 
 typedef struct {
+    int16_t values[8][3];
+} registers;
+
+typedef struct {
     
     int sp; // Stack Pointer.
     int num_elements; // Number of Elements.
     int max;
-    int *memory[]; // Stack Items.
+    int starting_addr;
+    // 1 -> ADDR MEM, 2-> VALUE
+    int16_t *memory[]; // Stack Items.
     
 } stack;
 
@@ -78,20 +84,16 @@ typedef struct {
     
     int size; // code size;
     // Array of code split by machine code separation / separate instructions.
-    int code[7];
     int pc; // Program Counter.
+    int16_t code[]; // Array
     
 } program;
 
-struct registers {
-    int16_t values[8][3];
-    
-};
 
 typedef struct {
     stack* stack; // Current Stack
     //int registers[8];
-    struct registers* registers;
+    registers* registers;
     short running;
     program* program;
     //int instruction_reg;
@@ -114,32 +116,34 @@ void run_cpu(cpu*);
 void dump_registers(cpu*);
 
 // Prototypes for the stack.
-stack* create_stack();
-void   free_stack(stack*);
-void   push_stack(stack*, int value);
-int    pop_stack(stack*);
-int    pick_stack(stack*);
-int    reset_stack(stack*);
+stack*     create_stack();
+void       free_stack(stack*);
+void       push_stack(stack*, int value);
+int16_t    pop_stack(stack*);
+int16_t    pick_stack(stack*);
+int16_t    peek_stack(stack*);
+void       reset_stack(stack*);
+
+registers* create_registers();
+void       free_registers(registers*);
 
 // Prototypes for the program.
 program* create_program();
 void     free_program(program*);
 void     reset_program(program*);
-void     load_program(program*, FILE*, int code[], int size);
+void     load_program(program*, char path[]);
 
 int main(int argc, const char * argv[]) {
     
-    cpu* g_cpu = create_cpu();
-    
-    int code[7] = {LOAD0, 0, LOAD1, 7, ADD, STORE0, 255};
-    
+    cpu* local_cpu = create_cpu();
+
     // Load program:
-    load_program(g_cpu->program, NULL, code, 7);
+    load_program(local_cpu->program, "/Users/Daniel/Desktop/program.hex");
     
     // Run Program:
-    run_cpu(g_cpu);
+    run_cpu(local_cpu);
     
-    free_cpu(g_cpu);
+    free_cpu(local_cpu);
 }
 
 
@@ -153,6 +157,8 @@ cpu* create_cpu() {
     local_cpu->stack = (stack*)create_stack();
     
     local_cpu->program = (program*)create_program();
+    
+    local_cpu->registers = (registers*)create_registers();
     
     local_cpu->num_registers = 8;
     
@@ -170,10 +176,11 @@ void reset_cpu(cpu* cpu_instance) {
 }
 
 void reset_registers(cpu* local_cpu) {
+    local_cpu->registers->values[0][0] = (int16_t)register_types[1][0];
     for(int i = 0; i<local_cpu->num_registers; i++) {
-        local_cpu->registers->values[i][0] = register_types[i][0]; // Char Association
-        local_cpu->registers->values[i][1] = 0; // Reset the registers' value.
-        local_cpu->registers->values[i][2] = register_types[i][1]; // Address Association
+        //local_cpu->registers->values[i][0] = (int16_t*)register_types[i][0]; // Char Association
+        //local_cpu->registers->values[i][1] = 0; // Reset the registers' value.
+        //local_cpu->registers->values[i][2] = (int16_t)register_types[i][1]; // Address Association
     }
 }
 
@@ -187,8 +194,8 @@ void dump_registers(cpu* cp) {
     
     printf("\n\n\nCPU Registers: \n");
     
-    for(int i = 0; i<8; i++)
-        printf("Register '%i|%i' [%i] | ", (char)cp->registers->values[i][0], cp->registers->values[i][2], cp->registers->values[i][1]);
+    //for(int i = 0; i<8; i++)
+    //    printf("Register '%i|%i' [%i] | ", (char)cp->registers->values[i][0], cp->registers->values[i][2], cp->registers->values[i][1]);
     
     printf("\nStatus [%i] | ", cp->status);
     printf("Overflow [%i] | ", cp->overflow);
@@ -213,44 +220,31 @@ void run_cpu(cpu* i) {
         
         // OpCodes:
         switch(i->opcode) {
-            case LOAD0:
-                i->registers[0] = i->current_pr->code[ i->program->pc ];
-                i->program->pc++;
-                break;
-            case LOAD1:
-                i->registers[1] = i->current_pr->code[ i->program->pc ];
-                i->program->pc++;
+            case SET:
+                //i->registers[0] = i->current_pr->code[ i->program->pc ];
+                //i->program->pc++;
                 break;
             case ADD:
-                i->temp = i->registers[0] + i->registers[1];
-                if (i->temp > i->max) {
-                    i->overflow = 1;
-                    i->temp = i->max;
-                }
-                i->registers[0] = i->temp;
+                //i->registers[1] = i->current_pr->code[ i->program->pc ];
+                //i->program->pc++;
+                break;
+            case SUB:
                 break;
             // Store in the stack:
-            case STORE:
+            case MUL:
                 
                 break;
-            case SUBSTRACT:
-                i->temp = i->registers[0] - i->registers[1];
-                if (i->temp < 0) {
-                    i->underflow = 1;
-                    i->temp = 0;
-                }
-                i->registers[0] = i->temp;
+            case MLI:
+            
                 break;
-            case STORE0:
-                i->current_pr->code[i->stack->pc] = i->registers[0];
-                i->stack->pc++;
+            case DIV:
+
                 break;
-            case STORE1:
-                i->current_pr->code[i->stack->pc] = i->registers[1];
-                i->stack->pc++;
+            case DVI:
+
                 break;
             default:
-                printf("Instruction Fault at: %i", i->stack->pc);
+                printf("Instruction Fault at: [%i] -> %i", i->program->pc, i->program->code[i->program->pc]);
                 i->status = 0;
                 dump_registers(i);
                 return;
@@ -260,12 +254,12 @@ void run_cpu(cpu* i) {
         dump_registers(i);
         
         // Check the size of the instructions left.
-        if (i->current_pr->size <= i->stack->pc)
+        if (i->program->code[i->program->pc] == (int)NULL)
         {
             i->running = 0;
             break;
         }
-    }ddddd
+    }
 
 }
 
@@ -276,27 +270,48 @@ stack* create_stack() {
 }
 
 void reset_stack(stack* local_stack) {
-    local_stack->pc = 0;
-    local_stack->sp = 0;
+    local_stack->starting_addr = 0xffff;
+    local_stack->sp            = local_stack->starting_addr;
+    
+    /** Initialize the stack **/
+    local_stack->memory[local_stack->starting_addr] = NULL; // Initialize the starting address.
 }
 
-int push_stack(stack* st, int value) {
-
+void push_stack(stack* st, int value) {
     // Push a new item on the stack.
-    st->st[st->num_elements++] = value;
-    
+    st->sp = st->sp++; // Increment the pointer.
+    st->memory[st->sp] = (int16_t*)value;
 }
 
-int pop_stack(stack* st) {
-    return 1;
+int16_t pop_stack(stack* st) {
+    // Remove the top most value;
+    // We can't actually remove it,
+    // so we'll nullify it, but return the old value.
+    int16_t old_value = *st->memory[st->sp];
+    st->memory[st->sp] = NULL;
+    st->sp = st->sp - 1;
+    return old_value;
 }
 
-int pick_stack(stack* st) {
-    
+int16_t pick_stack(stack* st) { // Doesn't touch SP
+    return 0;
+}
+
+int16_t peek_stack(stack* st) { // Doesn't touch SP
+    return 0;
 }
 
 void free_stack(stack* local_stack) {
     free(local_stack);
+}
+
+registers* create_registers() {
+    registers* local_reg = (registers*)malloc(sizeof(registers));
+    return local_reg;
+}
+
+void free_registers(registers* local_reg) {
+    free(local_reg);
 }
 
 program* create_program() {
@@ -304,17 +319,32 @@ program* create_program() {
     return local_pr;
 }
 
-void load_program(program* local_pr, FILE* file, int code[], int size) {
+void load_program(program* local_pr, char path[]) {
     
-    if (!file)
-    {
-        for (int i = 0; i<size; i++) {
-            local_pr->code[i] = code[i];
+    if (path) {
+        //10000
+        //10
+        char buf[200];
+        FILE *file = fopen(path, "r");
+        while (fgets(buf, sizeof(buf), file) != NULL) {
+            unsigned char a[4000];
+            int i = 0;
+            while (buf[i] != '\n') {
+                int b; // must use int with sscanf()
+                sscanf(&buf[i], "%x", &b);
+                a[i] = b;
+                i += 2;
+            }
+            
+            printf("0x%x\n", *a);
+            
         }
-        local_pr->size = size;
-    } else
-    {
+
         
+        fclose(file);
+       
+    } else {
+        printf("** ERROR ** [ Unable to load program file. ]");
     }
     
 }
