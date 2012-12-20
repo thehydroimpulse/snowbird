@@ -27,6 +27,7 @@
 		65579B881683191A00439EED /* add */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = add; sourceTree = "<group>"; };
 		65579B8916831AAD00439EED /* sub */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = sub; sourceTree = "<group>"; };
 		65579B8A16831DC500439EED /* mul */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mul; sourceTree = "<group>"; };
+		65579B8B1683218B00439EED /* div */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = div; sourceTree = "<group>"; };
 		65980389168006C5003FBB02 /* VM2 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = VM2; sourceTree = BUILT_PRODUCTS_DIR; };
 		65FB93B71680CD3F00308AF3 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -49,6 +50,7 @@
 				65579B881683191A00439EED /* add */,
 				65579B8916831AAD00439EED /* sub */,
 				65579B8A16831DC500439EED /* mul */,
+				65579B8B1683218B00439EED /* div */,
 			);
 			path = programs;
 			sourceTree = "<group>";
