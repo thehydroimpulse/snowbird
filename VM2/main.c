@@ -234,13 +234,22 @@ void dump_registers(cpu* cp) {
         getBin(cp->program->code[i], str);
         if ((cp->program->pc - 1) == i)
         {
-            printf("\t[%s] <-- %s[PC]%s %s(Program Counter)%s\n", str,
+            printf("\t[%s%s%s%s] <-- %s[PC]%s %s(Program Counter)%s\n",
+                   XCODE_COLORS_BLACK,
+                   XCODE_COLORS_BG_WHITE,
+                   str,
+                   XCODE_COLORS_RESET,
                    XCODE_COLORS_ORANGE, XCODE_COLORS_RESET,
                    XCODE_COLORS_LIGHT_BLUE, XCODE_COLORS_RESET);
         }
         else
         {
-            printf("\t[%s]\n", str);
+            printf("\t[%s%s%s%s]\n",
+                   XCODE_COLORS_BLACK,
+                   XCODE_COLORS_BG_WHITE,
+                   str,
+                   XCODE_COLORS_RESET
+            );
         }
     }
     printf("}\n");
@@ -441,5 +450,3 @@ void reset_program(program* local_pr) {
 void free_program(program* local_pr) {
     free(local_pr);
 }
-
-
