@@ -77,7 +77,7 @@ enum addr {
 };
 
 typedef struct {
-    int16_t values[8][3];
+    int16_t values[8][4];
 } registers;
 
 typedef struct {
@@ -187,11 +187,11 @@ void reset_cpu(cpu* cpu_instance) {
 }
 
 void reset_registers(cpu* local_cpu) {
-    local_cpu->registers->values[0][0] = (int16_t)register_types[1][0];
     for(int i = 0; i<local_cpu->num_registers; i++) {
-        //local_cpu->registers->values[i][0] = (int16_t*)register_types[i][0]; // Char Association
-        //local_cpu->registers->values[i][1] = 0; // Reset the registers' value.
-        //local_cpu->registers->values[i][2] = (int16_t)register_types[i][1]; // Address Association
+        local_cpu->registers->values[i][0] = (int16_t)register_types[i][1]; // Address Association
+        local_cpu->registers->values[i][1] = (int16_t)register_types[i][2]; // Address Association
+        local_cpu->registers->values[i][2] = (int16_t)register_types[i][0]; // Char Association
+        local_cpu->registers->values[i][3] = 0; // Reset the registers' value.
     }
 }
 
@@ -231,10 +231,17 @@ void run_cpu(cpu* i) {
         
         // OpCodes:
         switch(i->opcode) {
-            case SET:
-                //i->registers[0] = i->current_pr->code[ i->program->pc ];
+            case SET: {
+                i->registers->values[0][0] = i->program->code[ i->program->pc ];
                 //i->program->pc++;
+                int16_t b = i->program->code[ i->program->pc++];
+                int16_t a = i->program->code[ i->program->pc++];
+            
+                // Use b as the index of the register array:
+                i->registers->values[(short)b][3] = a;
+                printf("SET [%c] 0x0%x, 0x0%x\n", (char*)i->registers->values[(short)b][2], i->program->code[i->program->pc++], i->registers->values[(short)b][3]);
                 break;
+            }
             case ADD:
                 //i->registers[1] = i->current_pr->code[ i->program->pc ];
                 //i->program->pc++;
