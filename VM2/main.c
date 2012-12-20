@@ -6,12 +6,23 @@
 //  Copyright (c) 2012 Daniel Fagnan. All rights reserved.
 //
 
-/** Includes **/
-#include <stdio.h> // printf
-#include <stdlib.h> // malloc/free
-#include <string.h> // memset
-#include <stdint.h> // 16-bit integers.
-
+/**
+ * Include all the files we need from the C library set.
+ **/
+// We need functions like printf
+#include <stdio.h>
+// Memory management (malloc, free, etc...)
+#include <stdlib.h>
+// Memset
+#include <string.h>
+// 16-bit integers.
+#include <stdint.h>
+/**
+ *  MAC OSX Specific Color Codes and Color Escaping.
+ *  @todo Add windows escape and color codes, as well, as 
+ *        Mac OSX terminal color codes. This solution only works
+ *        for XCode's console output.
+ **/
 #define XCODE_COLORS_ESCAPE_MAC "\033["
 #define XCODE_COLORS_ESCAPE  XCODE_COLORS_ESCAPE_MAC
 #define XCODE_COLORS_RESET_FG XCODE_COLORS_ESCAPE "fg;"
@@ -28,6 +39,9 @@
 #define XCODE_COLORS_BG_WHITE XCODE_COLORS_ESCAPE "bg255,255,255;"
 #define XCODE_COLORS_BG_RED XCODE_COLORS_ESCAPE "bg200,20,20;"
 
+/**
+ * Convert decimal integers to a full base 2 (binary) number.
+ */
 void getBin(int num, char *str)
 {
     *(str+5) = '\0';
@@ -36,9 +50,23 @@ void getBin(int num, char *str)
         *str++ = !!(mask & num) + '0';
 }
 
-
+/**
+ * Initialize a new enumerable for all the normal opcodes.
+ * Each opcode will have a specific hexadecimal (binary) representation
+ * that are completely unique in opcode indices. 
+ * Special opcodes will be separate, as some, are included as extra 
+ * parameters.
+ */
 enum opcodes {
+    // Not Applicable. NULL
     NA  = 0x00,
+    // Set a memory address.
+    // @params: b, a
+    //          b = Memory Address
+    //          a = Value
+    // @note:   This only works with registers and not stack memory.
+    // @todo:   Add stack memory support. (though a little confused on the difference
+    //          between this and PUSH...
     SET = 0x01,
     ADD = 0x02,
     SUB = 0x03,
@@ -67,21 +95,20 @@ enum opcodes {
     STI = 0x1e,
     STD = 0x1f
 };
-
 // 1) Register Char Association
 // 2) Register Address
 // 3) Register Value Address
 //    If you would use "[0x08]" you would be accessing
 //    the value of the A register. "[0x09]" = B ...
 uint16_t register_types[8][3] = {
-    {'A', 0x00, 0x08},
+    {'A', 0x00, 0x08}, // First.
     {'B', 0x01, 0x09},
     {'C', 0x02, 0x0a},
     {'X', 0x03, 0x0b},
     {'Y', 0x04, 0x0c},
     {'Z', 0x05, 0x0d},
     {'I', 0x06, 0x0e},
-    {'J', 0x07, 0x0f}
+    {'J', 0x07, 0x0f} // Last.
 };
 
 // [0x1b] = SP's Value
