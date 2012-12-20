@@ -12,16 +12,30 @@
 #include <string.h> // memset
 #include <stdint.h> // 16-bit integers.
 
-/**enum Operands {
-    LOAD0 = 0x01,
-    LOAD1,
-    ADD,
-    SUBSTRACT,
-    STORE0,
-    STORE1,
-    STORE
-};**/
-     
+#define XCODE_COLORS_ESCAPE_MAC "\033["
+#define XCODE_COLORS_ESCAPE  XCODE_COLORS_ESCAPE_MAC
+#define XCODE_COLORS_RESET_FG XCODE_COLORS_ESCAPE "fg;"
+#define XCODE_COLORS_RESET_BG  XCODE_COLORS_ESCAPE "bg;"
+#define XCODE_COLORS_RESET     XCODE_COLORS_ESCAPE ";"
+
+#define XCODE_COLORS_PINK XCODE_COLORS_ESCAPE "fg180,22,95;"
+#define XCODE_COLORS_PURPLE XCODE_COLORS_ESCAPE "fg100,52,165;"
+#define XCODE_COLORS_ORANGE XCODE_COLORS_ESCAPE "fg219,102,39;"
+#define XCODE_COLORS_LIGHT_BLUE XCODE_COLORS_ESCAPE "fg66,181,219;"
+#define XCODE_COLORS_BLACK XCODE_COLORS_ESCAPE "fg00,00,00;"
+
+#define XCODE_COLORS_BG_BLACK XCODE_COLORS_ESCAPE "bg0,0,0;"
+#define XCODE_COLORS_BG_WHITE XCODE_COLORS_ESCAPE "bg255,255,255;"
+
+void getBin(int num, char *str)
+{
+    *(str+5) = '\0';
+    int mask = 0x10 << 1;
+    while(mask >>= 1)
+        *str++ = !!(mask & num) + '0';
+}
+
+
 enum opcodes {
     NA  = 0x00,
     SET = 0x01,
@@ -203,19 +217,31 @@ void free_cpu(cpu* cpu_instance) {
 
 void dump_registers(cpu* cp) {
     
-    printf("\n\n\nCPU Registers: \n");
+    printf("\n\n\n%sCPU Registers:%s \n", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
     
     //for(int i = 0; i<8; i++)
     //    printf("Register '%i|%i' [%i] | ", (char)cp->registers->values[i][0], cp->registers->values[i][2], cp->registers->values[i][1]);
     
+
     printf("\nStatus [%i] | ", cp->status);
     printf("Overflow [%i] | ", cp->overflow);
     printf("Underflow [%i] | ", cp->underflow);
     printf("PC [%i] | ", cp->program->pc);
     //printf("IReg [%i] | ", cp->registers->);
-    printf("Instructions {\n");
+    printf("\nInstructions {\n");
     for(int i = 0; i<cp->program->size; i++) {
-        printf("[%i]", cp->program->code[i]);
+        char str[20];
+        getBin(cp->program->code[i], str);
+        if ((cp->program->pc - 1) == i)
+        {
+            printf("\t[%s] <-- %s[PC]%s %s(Program Counter)%s\n", str,
+                   XCODE_COLORS_ORANGE, XCODE_COLORS_RESET,
+                   XCODE_COLORS_LIGHT_BLUE, XCODE_COLORS_RESET);
+        }
+        else
+        {
+            printf("\t[%s]\n", str);
+        }
     }
     printf("}\n");
 }
@@ -223,6 +249,8 @@ void dump_registers(cpu* cp) {
 void run_cpu(cpu* i) {
     i->status = 1;
     i->running = 1;
+    printf("%s\n\n\tInstructions\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+    printf("\n---------------------------------------------------------------------\n");
     while(i->running) {
         // Get the next instruction:
         i->opcode = i->program->code[i->program->pc];
@@ -240,24 +268,29 @@ void run_cpu(cpu* i) {
             //      This opcode takes 2 parameters, b and a. It'll set [a] (value of a) to b (the memory address of
             //      the pointer)
             //
-            case SET: {
-                i->registers->values[0][0] = i->program->code[ i->program->pc ];
-                //i->program->pc++;
-                int16_t b = i->program->code[ i->program->pc++];
-                int16_t a = i->program->code[ i->program->pc++];
+            case SET:
+            // Create a new scope so we can create variables, etc...
+            {
                 // Use b as the index of the register array.
                 // Because the registers' addreses range from [0x00-0x07], we can
                 // treat them as integers, converting them to [0-7].
-                i->registers->values[(short)b][3] = a;
-                
+                i->registers->values[(short)
+                    i->program->code[ i->program->pc++ ]
+                ][3] = i->program->code[ i->program->pc++ ];
                 // Print the resulting opcode and it's effect:
                 printf(
-                       "SET [%c] 0x0%x, 0x0%x\n",
-                       (int)i->registers->values[(short)b][2],
-                       i->program->code[i->program->pc++],
-                       i->registers->values[(short)b][3]
+                       "\t%sSET%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
+                       XCODE_COLORS_BG_BLACK,
+                       XCODE_COLORS_RESET_BG,
+                       XCODE_COLORS_LIGHT_BLUE,
+                       (int)i->registers->values[(short)i->program->code[ i->program->pc-1]][2], // Fetch the register's associating letter.
+                       XCODE_COLORS_RESET,
+                       XCODE_COLORS_BLACK,
+                       XCODE_COLORS_BG_WHITE,
+                       i->program->code[ i->program->pc-1], // Register's address.
+                       XCODE_COLORS_RESET,
+                       i->registers->values[(short)i->program->code[ i->program->pc-1]][3] // Registers' value ([b])
                 );
-                
                 break;
             }
             case ADD:
@@ -369,7 +402,7 @@ void load_program(program* local_pr, char path[]) {
         FILE *file = fopen(path, "rt");
         if (path) {
             
-            printf("** Loading Program... **\n");
+            printf("%s** Loading Program... **%s\n", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
             
             while (i < 80 && fscanf(file,"%x",&num[i]) != EOF)
                 i++;
@@ -391,7 +424,7 @@ void load_program(program* local_pr, char path[]) {
             
             //printf("0x%x", *buf);
             
-            printf("\n** Done Loading Program. **\n\n");
+            printf("\n%s** Done Loading Program. **%s\n\n", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
             
             //hex = (int16_t)"0x" + *buf;
         } else {
@@ -408,4 +441,5 @@ void reset_program(program* local_pr) {
 void free_program(program* local_pr) {
     free(local_pr);
 }
+
 
