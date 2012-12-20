@@ -329,7 +329,7 @@ void run_cpu(cpu* i) {
         dump_registers(i);
         
         // Check the size of the instructions left.
-        if (i->program->code[i->registers->pc] == (int)NULL)
+        if (i->program->code[i->registers->pc] >= i->program->size)
         {
             i->running = 0;
             break;
@@ -340,7 +340,7 @@ void run_cpu(cpu* i) {
 
 void dump_registers(cpu* cp) {
     
-    printf("\n\n\n%sCPU Registers:%s \n", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+    printf("\n\n\n%sDUMP:%s \n", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
     
     //for(int i = 0; i<8; i++)
     //    printf("Register '%i|%i' [%i] | ", (char)cp->registers->values[i][0], cp->registers->values[i][2], cp->registers->values[i][1]);
