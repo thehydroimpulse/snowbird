@@ -120,8 +120,6 @@ enum addr {
 
 // Global Memory Mappings.
 // You would use this table to lookup a memory address.
-//
-
 struct memory_map_t{
     // type of address; register = 0 / stack = 1
     // We need the type to then discover the real address.
@@ -255,6 +253,7 @@ void reset_registers(cpu* local_cpu) {
 
 void free_cpu(cpu* cpu_instance) {
     free_stack(cpu_instance->stack);
+    free_registers(cpu_instance->registers);
     free_program(cpu_instance->program);
     free(cpu_instance);
 }
@@ -312,13 +311,46 @@ void run_cpu(cpu* i) {
                        XCODE_COLORS_RESET,
                        i->registers->values[(short)i->program->code[ i->registers->pc]][3] // Registers' value ([b])
                 );
+                //i->registers->pc++;
                 break;
             }
             case ADD:
             {
+                i->registers->ex = (int16_t)i->registers->values[i->program->code[ i->registers->pc++ ]][3] + (int16_t)i->program->code[ i->registers->pc++ ];
                 
-                //i->registers[1] = i->current_pr->code[ i->program->pc ];
-                //i->program->pc++;
+                if (i->registers->ex > 0xffff)
+                {
+                    // Overflow:
+                    i->registers->ex = 0x0001;
+                    i->overflow = 1;
+                    printf("0x%x", i->program->code[i->registers->pc-2]);
+                    i->registers->values[i->program->code[i->registers->pc-2]][3] = 0x00;
+                }
+                else
+                {
+                    i->registers->values[i->program->code[i->registers->pc-2]][3] = (int16_t)i->registers->ex;
+                    i->registers->ex = 0x000;
+                }
+                
+                printf(
+                       "\t%sADD%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
+                       XCODE_COLORS_BG_BLACK,
+                       XCODE_COLORS_RESET_BG,
+                       XCODE_COLORS_LIGHT_BLUE,
+                       (int)i->registers->values[
+                                                 (short)i->program->code[ i->registers->pc-2]
+                                                 ][2], // Fetch the register's associating letter.
+                       XCODE_COLORS_RESET,
+                       XCODE_COLORS_BLACK,
+                       XCODE_COLORS_BG_WHITE,
+                       (int)i->registers->values[
+                                                 (short)i->program->code[ i->registers->pc-2]
+                                                 ][0], // Fetch the register's associating letter.
+                       XCODE_COLORS_RESET,
+                       i->registers->values[(short)i->program->code[ i->registers->pc - 2]][3] // Registers' value ([b])
+                );
+                
+                i->registers->pc++;
                 break;
             }
             case SUB:
@@ -348,15 +380,15 @@ void run_cpu(cpu* i) {
                        XCODE_COLORS_RESET
                 );
                 i->status = 0;
-                dump_registers(i);
+                //dump_registers(i);
                 return;
                 break;
         }
         
-        dump_registers(i);
+        //dump_registers(i);
         
         // Check the size of the instructions left.
-        if (i->program->code[i->registers->pc] >= i->program->size)
+        if (i->registers->pc > i->program->size)
         {
             i->running = 0;
             break;
