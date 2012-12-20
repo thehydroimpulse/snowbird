@@ -205,7 +205,7 @@ int main(int argc, const char * argv[]) {
     cpu* local_cpu = create_cpu();
 
     // Load program:
-    load_program(local_cpu->program, "/Users/Daniel/Documents/VM2/VM2/programs/sub");
+    load_program(local_cpu->program, "/Users/Daniel/Documents/VM2/VM2/programs/mul");
     
     // Run Program:
     run_cpu(local_cpu);
@@ -396,6 +396,35 @@ void run_cpu(cpu* i) {
             // Store in the stack:
             case MUL:
                 
+                i->registers->ex =
+                    (int16_t)i->registers->values[i->program->code[i->registers->pc]][3]
+                    *
+                    (int16_t)i->program->code[i->registers->pc + 1];
+                
+                
+                i->registers->values[i->program->code[i->registers->pc]][3] = (int16_t)i->registers->ex & 0x0000ffff;
+                
+                i->registers->ex = i->registers->ex >> 16;
+                
+                printf(
+                       "\t%sMUL%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
+                       XCODE_COLORS_BG_BLACK,
+                       XCODE_COLORS_RESET_BG,
+                       XCODE_COLORS_LIGHT_BLUE,
+                       (int)i->registers->values[
+                                                 (short)i->program->code[ i->registers->pc]
+                                                 ][2], // Fetch the register's associating letter.
+                       XCODE_COLORS_RESET,
+                       XCODE_COLORS_BLACK,
+                       XCODE_COLORS_BG_WHITE,
+                       (int)i->registers->values[
+                                                 (short)i->program->code[ i->registers->pc]
+                                                 ][0], // Fetch the register's associating letter.
+                       XCODE_COLORS_RESET,
+                       i->registers->values[(short)i->program->code[ i->registers->pc ]][3] // Registers' value ([b])
+                );
+                
+                i->registers->pc += 2;
                 break;
             case MLI:
             
