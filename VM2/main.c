@@ -493,8 +493,6 @@ void run_cpu(cpu* i) {
                 break;
         }
         
-        dump_registers(i);
-        
         // Check the size of the instructions left.
         if (i->registers->pc >= i->program->size)
         {
@@ -507,17 +505,13 @@ void run_cpu(cpu* i) {
 
 void dump_registers(cpu* cp) {
     
-    printf("\n\n%s\n\n\t\t\t\t\t\tData Dump:\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+    printf("\n\n\t\t\t%s%s\t\t\tData Dump:\t\t\t\t%s\n", XCODE_COLORS_BG_WHITE, XCODE_COLORS_BLACK, XCODE_COLORS_RESET);
     
     //for(int i = 0; i<8; i++)
     //    printf("Register '%i|%i' [%i] | ", (char)cp->registers->values[i][0], cp->registers->values[i][2], cp->registers->values[i][1]);
     
-    printf("%s%s------------------------------------------------------------------------------%s",
-        XCODE_COLORS_BG_BLACK,
-        XCODE_COLORS_ORANGE,
-        XCODE_COLORS_RESET
-    );
-    printf("\n%s Status %s [%i] %s%s|%s ",
+
+    printf("\n\t\t\t%s Status %s [%i] %s%s|%s ",
            XCODE_COLORS_BG_BLACK,
            XCODE_COLORS_RESET,
            cp->status,
@@ -558,7 +552,7 @@ void dump_registers(cpu* cp) {
            XCODE_COLORS_RESET
     );
     
-    printf("\n\n%s    Generic Registers     %s\n\n",
+    printf("\n\n\t\t\t%s    Generic Registers     %s\n\n",
         XCODE_COLORS_BG_BLACK,
         XCODE_COLORS_RESET
     );
@@ -567,19 +561,20 @@ void dump_registers(cpu* cp) {
     for (int k = 0; k<8; k++) {
         //cp->registers->values[k]
         
-        printf("[%s%s %i %s]-> Address: [0x0%x], Value: [0x0%x], Decimal: [%i]\n",
+        printf("\t\t\t[%s%s %i %s]-> Address: [0x0%x - %c], Value: [0x0%x], Decimal: [%i]\n",
                XCODE_COLORS_ORANGE,
                XCODE_COLORS_BG_WHITE,
                k,
                XCODE_COLORS_RESET,
                cp->registers->values[k][0],
+               (char)cp->registers->values[k][2],
                cp->registers->values[k][3],
                cp->registers->values[k][3]
         );
     }
     
     
-    printf("\n\n%s    Instructions     %s\n\n",
+    printf("\n\n\t\t\t%s    Instructions     %s\n\n",
            XCODE_COLORS_BG_BLACK,
            XCODE_COLORS_RESET
     );
@@ -588,7 +583,7 @@ void dump_registers(cpu* cp) {
         getBin(cp->program->code[i], str);
         if ((cp->registers->pc - 1) == i)
         {
-            printf("[%s%s %s %s] <-- %s[PC]%s ",
+            printf("\t\t\t[%s%s %s %s] <-- %s[PC]%s ",
                    XCODE_COLORS_BLACK,
                    XCODE_COLORS_BG_WHITE,
                    str,
@@ -782,15 +777,15 @@ u16* get_args(cpu* local_cpu, u8 n) {
 
 void debug_opcode(cpu* local_cpu, char *opcode, u16 n) {
 #ifdef DEBUGOPCODE
-    
     // Get the n arguments.
     u16 *args = get_args(local_cpu, n);
     
-    printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+    printf("%s\n\n\tInstruction/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
 
     printf(
-           "\t%sSET%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
+           "\t%s%s%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
            XCODE_COLORS_BG_BLACK,
+           opcode,
            XCODE_COLORS_RESET_BG,
            XCODE_COLORS_LIGHT_BLUE,
            get_register_value(local_cpu, args[0], 2),
@@ -802,8 +797,11 @@ void debug_opcode(cpu* local_cpu, char *opcode, u16 n) {
            get_register_value(local_cpu, args[0], 3)
     );
     
-    free(args);
+    dump_registers(local_cpu);
     
+    printf("%s\n\n\tEND\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+    
+    free(args);
 #endif
 }
 
