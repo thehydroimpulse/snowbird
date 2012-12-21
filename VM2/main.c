@@ -39,6 +39,11 @@
 #define XCODE_COLORS_BG_WHITE XCODE_COLORS_ESCAPE "bg255,255,255;"
 #define XCODE_COLORS_BG_RED XCODE_COLORS_ESCAPE "bg200,20,20;"
 
+// Types:
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+
 /**
  * Convert decimal integers to a full base 2 (binary) number.
  */
@@ -127,27 +132,26 @@ struct memory_map_t{
     // Store the real address anyways. It'll be faster/more effecient.
     // 0x001 -> 0x0001 (Register Type)
     // 0x002 -> 0x0005A (Stack Type)
-    int16_t addr;
+    u16 addr;
 };
 
 typedef struct {
-    int16_t values[8][4];
+    u16 values[8][4];
     // Special Registers:
-    int16_t pc; // Program Counter.
-    int16_t sp; // Stack Pointer.
-    int     ex; // Excess (Big).
-    int16_t ia; // Interrupt Address.
+    u16 pc; // Program Counter.
+    u16 sp; // Stack Pointer.
+    u32     ex; // Excess (Big).
+    u16 ia; // Interrupt Address.
 } registers;
 
 typedef struct {
     
-    int sp; // Stack Pointer.
-    int num_elements; // Number of Elements.
-    int max;
-    int starting_addr;
+    u16 sp; // Stack Pointer.
+    u16 num_elements; // Number of Elements.
+    u16 starting_addr;
     // 1 -> ADDR MEM, 2-> VALUE
     struct memory_map_t* memory_map; // The index will become the lookup memory address (i.e 0x01)
-    int16_t *memory[]; // Stack Items.
+    u16 *memory[]; // Stack Items.
     
 } stack;
 
@@ -155,7 +159,7 @@ typedef struct {
     
     int size; // code size;
     // Array of code split by machine code separation / separate instructions.
-    int16_t code[]; // Array
+    u16 code[]; // Array
     
 } program;
 
@@ -165,7 +169,7 @@ typedef struct {
     registers* registers;
     short running;
     program* program;
-    int16_t opcode;
+    u16 opcode;
     short overflow;
     short status;
     short underflow;
@@ -186,9 +190,9 @@ void dump_memory(cpu*);
 stack*     create_stack();
 void       free_stack(stack*);
 void       push_stack(stack*, int value);
-int16_t    pop_stack(stack*);
-int16_t    pick_stack(stack*);
-int16_t    peek_stack(stack*);
+u16        pop_stack(stack*);
+u16        pick_stack(stack*);
+u16        peek_stack(stack*);
 void       reset_stack(stack*);
 
 registers* create_registers();
@@ -199,6 +203,17 @@ program* create_program();
 void     free_program(program*);
 void     reset_program(program*);
 void     load_program(program*, char path[]);
+
+
+u16     get_args(cpu* local_cpu, u8 n);
+void    next_instruction(cpu* local_cpu);
+void    prev_instruction(cpu* local_cpu);
+u16     get_opcode(cpu* local_cpu);
+
+void    set_register(cpu* local_cpu, u16 address, u16 value);
+void    set_register_ex(cpu* local_cpu, u32 value);
+u16     get_register_value(cpu* local_cpu, u16 address);
+u32     get_register_ex_value(cpu* local_cpu);
 
 int main(int argc, const char * argv[]) {
     
@@ -244,9 +259,9 @@ void reset_cpu(cpu* cpu_instance) {
 
 void reset_registers(cpu* local_cpu) {
     for(int i = 0; i<local_cpu->num_registers; i++) {
-        local_cpu->registers->values[i][0] = (int16_t)register_types[i][1]; // Address Association
-        local_cpu->registers->values[i][1] = (int16_t)register_types[i][2]; // Address Association
-        local_cpu->registers->values[i][2] = (int16_t)register_types[i][0]; // Char Association
+        local_cpu->registers->values[i][0] = (u16)register_types[i][1]; // Address Association
+        local_cpu->registers->values[i][1] = (u16)register_types[i][2]; // Address Association
+        local_cpu->registers->values[i][2] = (u16)register_types[i][0]; // Char Association
         local_cpu->registers->values[i][3] = 0; // Reset the registers' value.
     }
 }
@@ -262,8 +277,8 @@ void free_cpu(cpu* cpu_instance) {
 void run_cpu(cpu* i) {
     i->status = 1;
     i->running = 1;
-    printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
-    printf("\n\t---------------------------------------------------------------------\n");
+    
+    //printf("\n\t---------------------------------------------------------------------\n");
     while(i->running) {
         // Get the next instruction:
         i->opcode = i->program->code[i->registers->pc];
@@ -289,8 +304,12 @@ void run_cpu(cpu* i) {
                 // Use b as the index of the register array.
                 // Because the registers' addreses range from [0x00-0x07], we can
                 // treat them as integers, converting them to [0-7].
+                
+                
+                
                 i->registers->values[ i->program->code[ i->registers->pc ] ][3] = i->program->code[ i->registers->pc+1 ];
                 i->registers->pc++;
+                printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
                 printf(
                        "\t%sSET%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
                        XCODE_COLORS_BG_BLACK,
@@ -314,7 +333,7 @@ void run_cpu(cpu* i) {
             }
             case ADD:
             {
-                i->registers->ex = (int16_t)i->registers->values[i->program->code[ i->registers->pc++ ]][3] + (int16_t)i->program->code[ i->registers->pc++ ];
+                i->registers->ex = (u16)i->registers->values[i->program->code[ i->registers->pc++ ]][3] + (u16)i->program->code[ i->registers->pc++ ];
                 
                 if (i->registers->ex > 0xffff)
                 {
@@ -326,10 +345,10 @@ void run_cpu(cpu* i) {
                 }
                 else
                 {
-                    i->registers->values[i->program->code[i->registers->pc-2]][3] = (int16_t)i->registers->ex;
+                    i->registers->values[i->program->code[i->registers->pc-2]][3] = (u16)i->registers->ex;
                     i->registers->ex = 0x000;
                 }
-                
+                printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
                 printf(
                        "\t%sADD%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
                        XCODE_COLORS_BG_BLACK,
@@ -354,24 +373,23 @@ void run_cpu(cpu* i) {
             case SUB:
             {
                 
-                i->registers->ex = (int16_t)i->registers->values[i->program->code[ i->registers->pc ]][3] - (int16_t)i->program->code[ i->registers->pc + 1 ];
+                i->registers->ex = (u16)i->registers->values[i->program->code[ i->registers->pc ]][3] - (u16)i->program->code[ i->registers->pc + 1 ];
                 
                 i->registers->pc += 1;
                 
-                if ((int16_t)i->program->code[ i->registers->pc - 1 ] > (int16_t)i->registers->values[i->program->code[ i->registers->pc - 2 ]][3])
+                if ((u16)i->program->code[ i->registers->pc - 1 ] > (u16)i->registers->values[i->program->code[ i->registers->pc - 2 ]][3])
                 {
                     // Overflow:
                     i->registers->ex = 0xffff;
                     i->underflow = 1;
-                    printf("UNDERFLOW: 0x%x", i->program->code[i->registers->pc-2]);
                     i->registers->values[i->program->code[i->registers->pc-2]][3] = 0x00;
                 }
                 else
                 {
-                    i->registers->values[i->program->code[i->registers->pc-2]][3] = (int16_t)i->registers->ex;
+                    i->registers->values[i->program->code[i->registers->pc-2]][3] = (u16)i->registers->ex;
                     i->registers->ex = 0x000;
                 }
-                
+                printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
                 printf(
                        "\t%sSUB%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
                        XCODE_COLORS_BG_BLACK,
@@ -397,15 +415,15 @@ void run_cpu(cpu* i) {
             case MUL:
                 
                 i->registers->ex =
-                    (int16_t)i->registers->values[i->program->code[i->registers->pc]][3]
+                    (u16)i->registers->values[i->program->code[i->registers->pc]][3]
                     *
-                    (int16_t)i->program->code[i->registers->pc + 1];
+                    (u16)i->program->code[i->registers->pc + 1];
                 
                 
-                i->registers->values[i->program->code[i->registers->pc]][3] = (int16_t)i->registers->ex;
+                i->registers->values[i->program->code[i->registers->pc]][3] = (u16)i->registers->ex;
                 
                 i->registers->ex = i->registers->ex >> 16;
-                
+                printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
                 printf(
                        "\t%sMUL%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
                        XCODE_COLORS_BG_BLACK,
@@ -432,7 +450,7 @@ void run_cpu(cpu* i) {
                 break;
             case DIV:
                 
-                if ((int16_t)i->program->code[i->registers->pc + 1] == 0)
+                if ((u16)i->program->code[i->registers->pc + 1] == 0)
                 {
                     i->registers->ex = 0;
                     i->registers->values[i->program->code[i->registers->pc]][3] = 0;
@@ -440,14 +458,14 @@ void run_cpu(cpu* i) {
                 else
                 {
                     i->registers->ex =
-                    (int16_t)i->registers->values[i->program->code[i->registers->pc]][3]
+                    (u16)i->registers->values[i->program->code[i->registers->pc]][3]
                     /
-                    (int16_t)i->program->code[i->registers->pc + 1];
+                    (u16)i->program->code[i->registers->pc + 1];
                     
-                    i->registers->values[i->program->code[i->registers->pc]][3] = (int16_t)i->registers->ex;
+                    i->registers->values[i->program->code[i->registers->pc]][3] = (u16)i->registers->ex;
                     
                 }
-                
+                printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
                 printf(
                        "\t%sDIV%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
                        XCODE_COLORS_BG_BLACK,
@@ -489,7 +507,7 @@ void run_cpu(cpu* i) {
                 break;
         }
         
-        //dump_registers(i);
+        dump_registers(i);
         
         // Check the size of the instructions left.
         if (i->registers->pc >= i->program->size)
@@ -503,34 +521,99 @@ void run_cpu(cpu* i) {
 
 void dump_registers(cpu* cp) {
     
-    printf("\n\n\n%sDUMP:%s \n", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+    printf("\n\n%s\n\n\t\t\t\t\t\tData Dump:\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
     
     //for(int i = 0; i<8; i++)
     //    printf("Register '%i|%i' [%i] | ", (char)cp->registers->values[i][0], cp->registers->values[i][2], cp->registers->values[i][1]);
     
+    printf("%s%s------------------------------------------------------------------------------%s",
+        XCODE_COLORS_BG_BLACK,
+        XCODE_COLORS_ORANGE,
+        XCODE_COLORS_RESET
+    );
+    printf("\n%s Status %s [%i] %s%s|%s ",
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_RESET,
+           cp->status,
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_ORANGE,
+           XCODE_COLORS_RESET
+    );
+    printf("%s Overflow %s [%i] %s%s|%s ",
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_RESET,
+           cp->overflow,
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_ORANGE,
+           XCODE_COLORS_RESET
+    );
+    printf("%s Underflow %s [%i] %s%s|%s ",
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_RESET,
+           cp->underflow,
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_ORANGE,
+           XCODE_COLORS_RESET
+    );
+    printf("%s PC %s [%i] %s%s|%s ",
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_RESET,
+           cp->registers->pc,
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_ORANGE,
+           XCODE_COLORS_RESET
+    );
+    printf("%s EX %s [%i] %s%s|%s ",
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_RESET,
+           cp->registers->ex,
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_ORANGE,
+           XCODE_COLORS_RESET
+    );
     
-    printf("\nStatus [%i] | ", cp->status);
-    printf("Overflow [%i] | ", cp->overflow);
-    printf("Underflow [%i] | ", cp->underflow);
-    printf("PC [%i] | ", cp->registers->pc);
-    //printf("IReg [%i] | ", cp->registers->);
-    printf("\nInstructions {\n");
+    printf("\n\n%s    Generic Registers     %s\n\n",
+        XCODE_COLORS_BG_BLACK,
+        XCODE_COLORS_RESET
+    );
+    
+    
+    for (int k = 0; k<8; k++) {
+        //cp->registers->values[k]
+        
+        printf("[%s%s %i %s]-> Address: [0x0%x], Value: [0x0%x], Decimal: [%i]\n",
+               XCODE_COLORS_ORANGE,
+               XCODE_COLORS_BG_WHITE,
+               k,
+               XCODE_COLORS_RESET,
+               cp->registers->values[k][0],
+               cp->registers->values[k][3],
+               cp->registers->values[k][3]
+        );
+    }
+    
+    
+    printf("\n\n%s    Instructions     %s\n\n",
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_RESET
+    );
     for(int i = 0; i<cp->program->size; i++) {
         char str[20];
         getBin(cp->program->code[i], str);
         if ((cp->registers->pc - 1) == i)
         {
-            printf("\t[%s%s%s%s] <-- %s[PC]%s %s(Program Counter)%s\n",
+            printf("[%s%s %s %s] <-- %s[PC]%s ",
                    XCODE_COLORS_BLACK,
                    XCODE_COLORS_BG_WHITE,
                    str,
                    XCODE_COLORS_RESET,
-                   XCODE_COLORS_ORANGE, XCODE_COLORS_RESET,
-                   XCODE_COLORS_LIGHT_BLUE, XCODE_COLORS_RESET);
+                   XCODE_COLORS_ORANGE,
+                   XCODE_COLORS_RESET
+            );
         }
         else
         {
-            printf("\t[%s%s%s%s]\n",
+            printf("[%s%s%s%s] ",
                    XCODE_COLORS_BLACK,
                    XCODE_COLORS_BG_WHITE,
                    str,
@@ -538,7 +621,7 @@ void dump_registers(cpu* cp) {
                    );
         }
     }
-    printf("}\n");
+    printf("\n\n");
 }
 
 void dump_memory(cpu* local_cpu) {
@@ -568,24 +651,24 @@ void reset_stack(stack* local_stack) {
 void push_stack(stack* st, int value) {
     // Push a new item on the stack.
     st->sp = st->sp++; // Increment the pointer.
-    st->memory[st->sp] = (int16_t*)value;
+    st->memory[st->sp] = (u16*)value;
 }
 
-int16_t pop_stack(stack* st) {
+u16 pop_stack(stack* st) {
     // Remove the top most value;
     // We can't actually remove it,
     // so we'll nullify it, but return the old value.
-    int16_t old_value = *st->memory[st->sp];
+    u16 old_value = *st->memory[st->sp];
     st->memory[st->sp] = NULL;
     st->sp = st->sp - 1;
     return old_value;
 }
 
-int16_t pick_stack(stack* st) { // Doesn't touch SP
+u16 pick_stack(stack* st) { // Doesn't touch SP
     return 0;
 }
 
-int16_t peek_stack(stack* st) { // Doesn't touch SP
+u16 peek_stack(stack* st) { // Doesn't touch SP
     return 0;
 }
 
@@ -618,7 +701,7 @@ void load_program(program* local_pr, char path[]) {
         //int rv;
         int num_values;
         unsigned int num[80];
-        //int16_t hex = 0;
+        //u16 hex = 0;
         FILE *file = fopen(path, "rt");
         if (path) {
             
@@ -646,7 +729,7 @@ void load_program(program* local_pr, char path[]) {
             
             printf("\n%s** Done Loading Program. **%s\n\n", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
             
-            //hex = (int16_t)"0x" + *buf;
+            //hex = (u16)"0x" + *buf;
         } else {
             printf("\n** ERROR ** [ Unable to load program file. ]\n");
         }
@@ -661,3 +744,36 @@ void reset_program(program* local_pr) {
 void free_program(program* local_pr) {
     free(local_pr);
 }
+
+u16 get_arg(cpu* local_cpu, u8 n) {
+    return 0;
+}
+
+void next_instruction(cpu* local_cpu)  {
+    
+}
+
+void prev_instruction(cpu* local_cpu) {
+    
+}
+
+u16 get_opcode(cpu* local_cpu) {
+    return 0;
+}
+
+void set_register(cpu* local_cpu, u16 address, u16 value) {
+    local_cpu->registers->values[address][3] = value;
+}
+
+void set_register_ex(cpu* local_cpu, u32 value) {
+    local_cpu->registers->ex = value;
+}
+
+u16 get_register_value(cpu* local_cpu, u16 address) {
+    return local_cpu->registers->values[address][3];
+}
+
+u32 get_register_ex_value(cpu* local_cpu) {
+    return local_cpu->registers->ex;
+}
+
