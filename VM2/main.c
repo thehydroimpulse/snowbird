@@ -39,6 +39,8 @@
 #define XCODE_COLORS_BG_WHITE XCODE_COLORS_ESCAPE "bg255,255,255;"
 #define XCODE_COLORS_BG_RED XCODE_COLORS_ESCAPE "bg200,20,20;"
 
+#define DEBUGOPCODE 1
+
 // Types:
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -205,22 +207,28 @@ void     reset_program(program*);
 void     load_program(program*, char path[]);
 
 
-u16     get_args(cpu* local_cpu, u8 n);
-void    next_instruction(cpu* local_cpu);
+u16     get_arg(cpu* local_cpu, u8 n);
+u16*    get_args(cpu* local_cpu, u8 n);
+void    next_instruction(cpu* local_cpu, u16 n);
 void    prev_instruction(cpu* local_cpu);
 u16     get_opcode(cpu* local_cpu);
 
 void    set_register(cpu* local_cpu, u16 address, u16 value);
 void    set_register_ex(cpu* local_cpu, u32 value);
-u16     get_register_value(cpu* local_cpu, u16 address);
+u16     get_register_value(cpu* local_cpu, u16 address, u8 type);
 u32     get_register_ex_value(cpu* local_cpu);
+
+u16     get_pc(cpu* local_cpu);
+u16     get_code(cpu* local_cpu, u16 n);
+
+void    debug_opcode(cpu* local_cpu, char *opcode, u16 n);
 
 int main(int argc, const char * argv[]) {
     
     cpu* local_cpu = create_cpu();
 
     // Load program:
-    load_program(local_cpu->program, "/Users/Daniel/Documents/VM2/VM2/programs/div");
+    load_program(local_cpu->program, "/Users/Daniel/Documents/VM2/VM2/programs/set");
     
     // Run Program:
     run_cpu(local_cpu);
@@ -281,10 +289,9 @@ void run_cpu(cpu* i) {
     //printf("\n\t---------------------------------------------------------------------\n");
     while(i->running) {
         // Get the next instruction:
-        i->opcode = i->program->code[i->registers->pc];
+        i->opcode = get_opcode(i);
         // Increment the pointer to the next instruction:
-        i->registers->pc++;
-        
+        next_instruction(i, 1);
         // OpCodes:
         switch(i->opcode) {
             //
@@ -305,30 +312,9 @@ void run_cpu(cpu* i) {
                 // Because the registers' addreses range from [0x00-0x07], we can
                 // treat them as integers, converting them to [0-7].
                 
-                
-                
-                i->registers->values[ i->program->code[ i->registers->pc ] ][3] = i->program->code[ i->registers->pc+1 ];
-                i->registers->pc++;
-                printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
-                printf(
-                       "\t%sSET%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
-                       XCODE_COLORS_BG_BLACK,
-                       XCODE_COLORS_RESET_BG,
-                       XCODE_COLORS_LIGHT_BLUE,
-                       (int)i->registers->values[
-                            i->program->code[ i->registers->pc - 1]
-                       ][2], // Fetch the register's associating letter.
-                       XCODE_COLORS_RESET,
-                       XCODE_COLORS_BLACK,
-                       XCODE_COLORS_BG_WHITE,
-                       (int)i->registers->values[
-                            i->program->code[ i->registers->pc - 1]
-                       ][0], // Fetch the register's associating addr.
-                       XCODE_COLORS_RESET,
-                       i->registers->values[i->program->code[ i->registers->pc - 1 ]][3] // Registers' value ([b])
-                );
-            
-                i->registers->pc++;
+                set_register(i, get_arg(i, 0), get_arg(i, 1));
+                debug_opcode(i, "SET", 2);
+                next_instruction(i, 2); // 2 arguments.
                 break;
             }
             case ADD:
@@ -746,11 +732,11 @@ void free_program(program* local_pr) {
 }
 
 u16 get_arg(cpu* local_cpu, u8 n) {
-    return 0;
+    return get_code(local_cpu, get_pc(local_cpu) + n);
 }
 
-void next_instruction(cpu* local_cpu)  {
-    
+void next_instruction(cpu* local_cpu, u16 n)  {
+    local_cpu->registers->pc += n;
 }
 
 void prev_instruction(cpu* local_cpu) {
@@ -758,7 +744,7 @@ void prev_instruction(cpu* local_cpu) {
 }
 
 u16 get_opcode(cpu* local_cpu) {
-    return 0;
+    return get_code(local_cpu, get_pc(local_cpu));
 }
 
 void set_register(cpu* local_cpu, u16 address, u16 value) {
@@ -769,11 +755,55 @@ void set_register_ex(cpu* local_cpu, u32 value) {
     local_cpu->registers->ex = value;
 }
 
-u16 get_register_value(cpu* local_cpu, u16 address) {
-    return local_cpu->registers->values[address][3];
+u16 get_register_value(cpu* local_cpu, u16 address, u8 type) {
+    return local_cpu->registers->values[address][type];
 }
 
 u32 get_register_ex_value(cpu* local_cpu) {
     return local_cpu->registers->ex;
+}
+
+u16 get_pc(cpu* local_cpu) {
+    return local_cpu->registers->pc;
+}
+
+u16 get_code(cpu* local_cpu, u16 n) {
+    return local_cpu->program->code[n];
+}
+
+u16* get_args(cpu* local_cpu, u8 n) {
+    u16* arrg = (u16*)malloc(sizeof(u16) * n);
+    
+    for (int i = 0; i<n; i++) {
+        arrg[i] = get_arg(local_cpu, i);
+    }
+    return arrg;
+}
+
+void debug_opcode(cpu* local_cpu, char *opcode, u16 n) {
+#ifdef DEBUGOPCODE
+    
+    // Get the n arguments.
+    u16 *args = get_args(local_cpu, n);
+    
+    printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+
+    printf(
+           "\t%sSET%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
+           XCODE_COLORS_BG_BLACK,
+           XCODE_COLORS_RESET_BG,
+           XCODE_COLORS_LIGHT_BLUE,
+           get_register_value(local_cpu, args[0], 2),
+           XCODE_COLORS_RESET,
+           XCODE_COLORS_BLACK,
+           XCODE_COLORS_BG_WHITE,
+           get_register_value(local_cpu, args[0], 0),
+           XCODE_COLORS_RESET,
+           get_register_value(local_cpu, args[0], 3)
+    );
+    
+    free(args);
+    
+#endif
 }
 
