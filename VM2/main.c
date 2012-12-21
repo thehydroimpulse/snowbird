@@ -185,7 +185,7 @@ void reset_cpu(cpu*);
 void reset_registers(cpu*);
 void run_cpu(cpu*);
 
-void dump_registers(cpu*);
+void dump_registers(cpu*, u8 n);
 void dump_memory(cpu*);
 
 // Prototypes for the stack.
@@ -228,7 +228,7 @@ int main(int argc, const char * argv[]) {
     cpu* local_cpu = create_cpu();
 
     // Load program:
-    load_program(local_cpu->program, "/Users/Daniel/Documents/VM2/VM2/programs/set");
+    load_program(local_cpu->program, "/Users/Daniel/Documents/VM2/VM2/programs/div");
     
     // Run Program:
     run_cpu(local_cpu);
@@ -311,7 +311,6 @@ void run_cpu(cpu* i) {
                 // Use b as the index of the register array.
                 // Because the registers' addreses range from [0x00-0x07], we can
                 // treat them as integers, converting them to [0-7].
-                
                 set_register(i, get_arg(i, 0), get_arg(i, 1));
                 debug_opcode(i, "SET", 2);
                 next_instruction(i, 2); // 2 arguments.
@@ -319,159 +318,71 @@ void run_cpu(cpu* i) {
             }
             case ADD:
             {
-                i->registers->ex = (u16)i->registers->values[i->program->code[ i->registers->pc++ ]][3] + (u16)i->program->code[ i->registers->pc++ ];
-                
-                if (i->registers->ex > 0xffff)
+                set_register_ex(i, get_register_value(i, get_arg(i, 0), 3) + get_arg(i, 1));
+                if (get_register_ex_value(i) > 0xffff)
                 {
                     // Overflow:
-                    i->registers->ex = 0x0001;
+                    set_register_ex(i, 0x001);
                     i->overflow = 1;
-                    printf("0x%x", i->program->code[i->registers->pc-2]);
-                    i->registers->values[i->program->code[i->registers->pc-2]][3] = 0x00;
+                    set_register(i, get_arg(i, 0), 0x00);
                 }
                 else
                 {
-                    i->registers->values[i->program->code[i->registers->pc-2]][3] = (u16)i->registers->ex;
-                    i->registers->ex = 0x000;
+                    set_register(i, get_arg(i, 0), get_register_ex_value(i));
+                    set_register_ex(i, 0x000);
                 }
-                printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
-                printf(
-                       "\t%sADD%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
-                       XCODE_COLORS_BG_BLACK,
-                       XCODE_COLORS_RESET_BG,
-                       XCODE_COLORS_LIGHT_BLUE,
-                       (int)i->registers->values[
-                                                 (short)i->program->code[ i->registers->pc-2]
-                                                 ][2], // Fetch the register's associating letter.
-                       XCODE_COLORS_RESET,
-                       XCODE_COLORS_BLACK,
-                       XCODE_COLORS_BG_WHITE,
-                       (int)i->registers->values[
-                                                 (short)i->program->code[ i->registers->pc-2]
-                                                 ][0], // Fetch the register's associating letter.
-                       XCODE_COLORS_RESET,
-                       i->registers->values[(short)i->program->code[ i->registers->pc - 2]][3] // Registers' value ([b])
-                );
                 
-                i->registers->pc++;
+                debug_opcode(i, "ADD", 2);                
+                next_instruction(i, 2); // 2 arguments.
                 break;
             }
             case SUB:
             {
                 
-                i->registers->ex = (u16)i->registers->values[i->program->code[ i->registers->pc ]][3] - (u16)i->program->code[ i->registers->pc + 1 ];
+                set_register_ex(i, get_register_value(i, get_arg(i, 0), 3) - get_arg(i, 1));
                 
-                i->registers->pc += 1;
-                
-                if ((u16)i->program->code[ i->registers->pc - 1 ] > (u16)i->registers->values[i->program->code[ i->registers->pc - 2 ]][3])
+                if ( get_arg(i, 1) > get_register_value(i, get_arg(i, 0), 3))
                 {
                     // Overflow:
-                    i->registers->ex = 0xffff;
+                    set_register_ex(i, 0xffff);
                     i->underflow = 1;
-                    i->registers->values[i->program->code[i->registers->pc-2]][3] = 0x00;
+                    set_register(i, get_arg(i, 0), 0x00);
                 }
                 else
                 {
-                    i->registers->values[i->program->code[i->registers->pc-2]][3] = (u16)i->registers->ex;
-                    i->registers->ex = 0x000;
+                    set_register(i, get_arg(i, 0), get_register_ex_value(i));
+                    set_register_ex(i, 0x000);
                 }
-                printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
-                printf(
-                       "\t%sSUB%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
-                       XCODE_COLORS_BG_BLACK,
-                       XCODE_COLORS_RESET_BG,
-                       XCODE_COLORS_LIGHT_BLUE,
-                       (int)i->registers->values[
-                                                 (short)i->program->code[ i->registers->pc-2]
-                                                 ][2], // Fetch the register's associating letter.
-                       XCODE_COLORS_RESET,
-                       XCODE_COLORS_BLACK,
-                       XCODE_COLORS_BG_WHITE,
-                       (int)i->registers->values[
-                                                 (short)i->program->code[ i->registers->pc-2]
-                                                 ][0], // Fetch the register's associating letter.
-                       XCODE_COLORS_RESET,
-                       i->registers->values[(short)i->program->code[ i->registers->pc - 2]][3] // Registers' value ([b])
-                       );
                 
-                i->registers->pc += 1;
+                debug_opcode(i, "SUB", 2);
+                next_instruction(i, 2); // 2 arguments.
                 break;
             }
             // Store in the stack:
             case MUL:
-                
-                i->registers->ex =
-                    (u16)i->registers->values[i->program->code[i->registers->pc]][3]
-                    *
-                    (u16)i->program->code[i->registers->pc + 1];
-                
-                
-                i->registers->values[i->program->code[i->registers->pc]][3] = (u16)i->registers->ex;
-                
-                i->registers->ex = i->registers->ex >> 16;
-                printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
-                printf(
-                       "\t%sMUL%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
-                       XCODE_COLORS_BG_BLACK,
-                       XCODE_COLORS_RESET_BG,
-                       XCODE_COLORS_LIGHT_BLUE,
-                       (int)i->registers->values[
-                                                 (short)i->program->code[ i->registers->pc]
-                                                 ][2], // Fetch the register's associating letter.
-                       XCODE_COLORS_RESET,
-                       XCODE_COLORS_BLACK,
-                       XCODE_COLORS_BG_WHITE,
-                       (int)i->registers->values[
-                                                 (short)i->program->code[ i->registers->pc]
-                                                 ][0], // Fetch the register's associating letter.
-                       XCODE_COLORS_RESET,
-                       i->registers->values[(short)i->program->code[ i->registers->pc ]][3] // Registers' value ([b])
-                );
-                
-                
-                i->registers->pc += 2;
+                set_register_ex(i, get_register_value(i, get_arg(i, 0), 3) * get_arg(i, 1));
+                set_register(i, get_arg(i, 0), get_register_ex_value(i));
+                set_register_ex(i, get_register_ex_value(i) >> 16);
+                debug_opcode(i, "MUL", 2);
+                next_instruction(i, 2); // 2 arguments.                
                 break;
             case MLI:
             
                 break;
             case DIV:
                 
-                if ((u16)i->program->code[i->registers->pc + 1] == 0)
+                if (get_arg(i, 1) == 0)
                 {
-                    i->registers->ex = 0;
-                    i->registers->values[i->program->code[i->registers->pc]][3] = 0;
+                    set_register_ex(i, 0);
+                    set_register(i, get_arg(i, 0), 0);
                 }
                 else
                 {
-                    i->registers->ex =
-                    (u16)i->registers->values[i->program->code[i->registers->pc]][3]
-                    /
-                    (u16)i->program->code[i->registers->pc + 1];
-                    
-                    i->registers->values[i->program->code[i->registers->pc]][3] = (u16)i->registers->ex;
-                    
+                    set_register_ex(i, get_register_value(i, get_arg(i, 0), 3) / get_arg(i, 1));
+                    set_register(i, get_arg(i, 0), get_register_ex_value(i));
                 }
-                printf("%s\n\n\tInstructions/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
-                printf(
-                       "\t%sDIV%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
-                       XCODE_COLORS_BG_BLACK,
-                       XCODE_COLORS_RESET_BG,
-                       XCODE_COLORS_LIGHT_BLUE,
-                       (int)i->registers->values[
-                                                 (short)i->program->code[ i->registers->pc]
-                                                 ][2], // Fetch the register's associating letter.
-                       XCODE_COLORS_RESET,
-                       XCODE_COLORS_BLACK,
-                       XCODE_COLORS_BG_WHITE,
-                       (int)i->registers->values[
-                                                 (short)i->program->code[ i->registers->pc]
-                                                 ][0], // Fetch the register's associating letter.
-                       XCODE_COLORS_RESET,
-                       i->registers->values[(short)i->program->code[ i->registers->pc ]][3] // Registers' value ([b])
-                       );
-
-                i->registers->pc += 2;
-                
+                debug_opcode(i, "DIV", 2);
+                next_instruction(i, 2); // 2 arguments.
                 break;
             case DVI:
 
@@ -488,7 +399,7 @@ void run_cpu(cpu* i) {
                        XCODE_COLORS_RESET
                 );
                 i->status = 0;
-                dump_registers(i);
+                dump_registers(i, 0);
                 return;
                 break;
         }
@@ -503,7 +414,7 @@ void run_cpu(cpu* i) {
 
 }
 
-void dump_registers(cpu* cp) {
+void dump_registers(cpu* cp, u8 n) {
     
     printf("\n\n\t\t\t%s%s\t\t\tData Dump:\t\t\t\t%s\n", XCODE_COLORS_BG_WHITE, XCODE_COLORS_BLACK, XCODE_COLORS_RESET);
     
@@ -538,7 +449,7 @@ void dump_registers(cpu* cp) {
     printf("%s PC %s [%i] %s%s|%s ",
            XCODE_COLORS_BG_BLACK,
            XCODE_COLORS_RESET,
-           cp->registers->pc,
+           cp->registers->pc + n,
            XCODE_COLORS_BG_BLACK,
            XCODE_COLORS_ORANGE,
            XCODE_COLORS_RESET
@@ -574,14 +485,14 @@ void dump_registers(cpu* cp) {
     }
     
     
-    printf("\n\n\t\t\t%s    Instructions     %s\n\n",
+    /**printf("\n\n\t\t\t%s    Instructions     %s\n\n",
            XCODE_COLORS_BG_BLACK,
            XCODE_COLORS_RESET
     );
     for(int i = 0; i<cp->program->size; i++) {
         char str[20];
         getBin(cp->program->code[i], str);
-        if ((cp->registers->pc - 1) == i)
+        if (((cp->registers->pc + n) - 1) == i)
         {
             printf("\t\t\t[%s%s %s %s] <-- %s[PC]%s ",
                    XCODE_COLORS_BLACK,
@@ -594,14 +505,14 @@ void dump_registers(cpu* cp) {
         }
         else
         {
-            printf("[%s%s%s%s] ",
+            printf("\t\t\t[%s%s%s%s] ",
                    XCODE_COLORS_BLACK,
                    XCODE_COLORS_BG_WHITE,
                    str,
                    XCODE_COLORS_RESET
                    );
         }
-    }
+    }**/
     printf("\n\n");
 }
 
@@ -797,7 +708,7 @@ void debug_opcode(cpu* local_cpu, char *opcode, u16 n) {
            get_register_value(local_cpu, args[0], 3)
     );
     
-    dump_registers(local_cpu);
+    dump_registers(local_cpu, n);
     
     printf("%s\n\n\tEND\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
     
