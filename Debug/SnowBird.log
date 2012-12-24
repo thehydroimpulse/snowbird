@@ -1,0 +1,43 @@
+﻿Build started 12/23/2012 5:34:04 AM.
+     1>Project "C:\Users\Daniel\Documents\Projects\snowbird\SnowBird.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TC /analyze- /errorReport:prompt main.c
+         main.c
+     1>main.c(55): error C2143: syntax error : missing ';' before 'type'
+     1>main.c(56): error C2065: 'mask' : undeclared identifier
+     1>main.c(57): error C2065: 'mask' : undeclared identifier
+     1>main.c(255): error C2143: syntax error : missing ';' before 'type'
+     1>main.c(255): error C2143: syntax error : missing ')' before 'type'
+     1>main.c(255): error C2065: 'i' : undeclared identifier
+     1>main.c(255): warning C4552: '<' : operator has no effect; expected operator with side-effect
+     1>main.c(255): error C2059: syntax error : ')'
+     1>main.c(255): error C2143: syntax error : missing ';' before '{'
+     1>main.c(256): error C2065: 'i' : undeclared identifier
+     1>main.c(257): error C2065: 'i' : undeclared identifier
+     1>main.c(258): error C2065: 'i' : undeclared identifier
+     1>main.c(259): error C2065: 'i' : undeclared identifier
+     1>main.c(458): error C2143: syntax error : missing ';' before 'type'
+     1>main.c(458): error C2143: syntax error : missing ')' before 'type'
+     1>main.c(458): error C2065: 'k' : undeclared identifier
+     1>main.c(458): warning C4552: '<' : operator has no effect; expected operator with side-effect
+     1>main.c(458): error C2059: syntax error : ')'
+     1>main.c(458): error C2143: syntax error : missing ';' before '{'
+     1>main.c(464): error C2065: 'k' : undeclared identifier
+     1>main.c(466): error C2065: 'k' : undeclared identifier
+     1>main.c(467): error C2065: 'k' : undeclared identifier
+     1>main.c(468): error C2065: 'k' : undeclared identifier
+     1>main.c(469): error C2065: 'k' : undeclared identifier
+     1>main.c(669): error C2143: syntax error : missing ';' before 'type'
+     1>main.c(669): error C2143: syntax error : missing ')' before 'type'
+     1>main.c(669): error C2065: 'i' : undeclared identifier
+     1>main.c(669): warning C4552: '<' : operator has no effect; expected operator with side-effect
+     1>main.c(669): error C2059: syntax error : ')'
+     1>main.c(669): error C2143: syntax error : missing ';' before '{'
+     1>main.c(670): error C2065: 'i' : undeclared identifier
+     1>main.c(678): warning C4244: 'function' : conversion from 'u16' to 'u8', possible loss of data
+     1>main.c(697): warning C4244: 'function' : conversion from 'u16' to 'u8', possible loss of data
+     1>Done Building Project "C:\Users\Daniel\Documents\Projects\snowbird\SnowBird.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.14

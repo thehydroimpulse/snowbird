@@ -17,29 +17,24 @@
 #include <string.h>
 // 16-bit integers.
 #include <stdint.h>
-/**
- *  MAC OSX Specific Color Codes and Color Escaping.
- *  @todo Add windows escape and color codes, as well, as 
- *        Mac OSX terminal color codes. This solution only works
- *        for XCode's console output.
- **/
-#define XCODE_COLORS_ESCAPE_MAC "\033["
-#define XCODE_COLORS_ESCAPE  XCODE_COLORS_ESCAPE_MAC
-#define XCODE_COLORS_RESET_FG XCODE_COLORS_ESCAPE "fg;"
-#define XCODE_COLORS_RESET_BG  XCODE_COLORS_ESCAPE "bg;"
-#define XCODE_COLORS_RESET     XCODE_COLORS_ESCAPE ";"
 
-#define XCODE_COLORS_PINK XCODE_COLORS_ESCAPE "fg180,22,95;"
-#define XCODE_COLORS_PURPLE XCODE_COLORS_ESCAPE "fg100,52,165;"
-#define XCODE_COLORS_ORANGE XCODE_COLORS_ESCAPE "fg219,102,39;"
-#define XCODE_COLORS_LIGHT_BLUE XCODE_COLORS_ESCAPE "fg66,181,219;"
-#define XCODE_COLORS_BLACK XCODE_COLORS_ESCAPE "fg00,00,00;"
+#define COLORS_ESCAPE "\033["
+#define COLORS_RESET  COLORS_ESCAPE "0m"
+#define COLORS_RESET_FG COLORS_RESET
+#define COLORS_RESET_BG  COLORS_RESET
 
-#define XCODE_COLORS_BG_BLACK XCODE_COLORS_ESCAPE "bg0,0,0;"
-#define XCODE_COLORS_BG_WHITE XCODE_COLORS_ESCAPE "bg255,255,255;"
-#define XCODE_COLORS_BG_RED XCODE_COLORS_ESCAPE "bg200,20,20;"
+#define COLORS_PINK COLORS_ESCAPE "31m"
+#define COLORS_PURPLE COLORS_ESCAPE "31m"
+#define COLORS_ORANGE COLORS_ESCAPE "31m"
+#define COLORS_LIGHT_BLUE COLORS_ESCAPE "31m"
+#define COLORS_BLACK COLORS_ESCAPE "30m"
 
-#define DEBUGOPCODE 1
+#define COLORS_BG_BLACK COLORS_ESCAPE "46m"
+#define COLORS_BG_WHITE COLORS_ESCAPE "47m"
+#define COLORS_BG_RED "41m"
+
+
+#define DEBUGOPCODE 0
 
 // Types:
 typedef uint8_t u8;
@@ -150,10 +145,10 @@ typedef struct {
     
     u16 sp; // Stack Pointer.
     u16 num_elements; // Number of Elements.
-    u16 starting_addr;
+    u16 starting_addr[2];
     // 1 -> ADDR MEM, 2-> VALUE
-    struct memory_map_t* memory_map; // The index will become the lookup memory address (i.e 0x01)
-    u16 *memory[]; // Stack Items.
+    //struct memory_map_t* memory_map; // The index will become the lookup memory address (i.e 0x01)
+    u16 **memory; // Stack Items.
     
 } stack;
 
@@ -223,20 +218,6 @@ u16     get_code(cpu* local_cpu, u16 n);
 
 void    debug_opcode(cpu* local_cpu, char *opcode, u16 n);
 
-int main(int argc, const char * argv[]) {
-    
-    cpu* local_cpu = create_cpu();
-
-    // Load program:
-    load_program(local_cpu->program, "/Users/Daniel/Documents/VM2/VM2/programs/div");
-    
-    // Run Program:
-    run_cpu(local_cpu);
-    
-    free_cpu(local_cpu);
-}
-
-
 // create_cpu will initialize the cpu and allocate enough memory.
 cpu* create_cpu() {
     
@@ -254,8 +235,6 @@ cpu* create_cpu() {
     
     // Reset Registers & Stack.
     reset_cpu(local_cpu);
-    
-    // Ready to receive a program's data.
     return local_cpu;
 }
 
@@ -276,8 +255,8 @@ void reset_registers(cpu* local_cpu) {
 
 void free_cpu(cpu* cpu_instance) {
     free_stack(cpu_instance->stack);
-    free_registers(cpu_instance->registers);
-    free_program(cpu_instance->program);
+    //free_registers(cpu_instance->registers);
+    //free_program(cpu_instance->program);
     free(cpu_instance);
 }
 
@@ -389,14 +368,14 @@ void run_cpu(cpu* i) {
                 break;
             default:
                 printf("\n\n%s\n\n\n\t\tInstruction Fault at: [%s%s%i%s%s] -> 0x%x\n\n\n%s\n",
-                       XCODE_COLORS_BG_RED,
-                       XCODE_COLORS_BG_BLACK,
-                       XCODE_COLORS_LIGHT_BLUE,
+                       COLORS_BG_RED,
+                       COLORS_BG_BLACK,
+                       COLORS_LIGHT_BLUE,
                        i->registers->pc,
-                       XCODE_COLORS_RESET,
-                       XCODE_COLORS_BG_RED,
+                       COLORS_RESET,
+                       COLORS_BG_RED,
                        i->program->code[i->registers->pc],
-                       XCODE_COLORS_RESET
+                       COLORS_RESET
                 );
                 i->status = 0;
                 dump_registers(i, 0);
@@ -416,56 +395,56 @@ void run_cpu(cpu* i) {
 
 void dump_registers(cpu* cp, u8 n) {
     
-    printf("\n\n\t\t\t%s%s\t\t\tData Dump:\t\t\t\t%s\n", XCODE_COLORS_BG_WHITE, XCODE_COLORS_BLACK, XCODE_COLORS_RESET);
+    printf("\n\n\t\t\t%s%s\t\t\tData Dump:\t\t\t\t%s\n", COLORS_BG_WHITE, COLORS_BLACK, COLORS_RESET);
     
     //for(int i = 0; i<8; i++)
     //    printf("Register '%i|%i' [%i] | ", (char)cp->registers->values[i][0], cp->registers->values[i][2], cp->registers->values[i][1]);
     
 
     printf("\n\t\t\t%s Status %s [%i] %s%s|%s ",
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_RESET,
+           COLORS_BG_BLACK,
+           COLORS_RESET,
            cp->status,
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_ORANGE,
-           XCODE_COLORS_RESET
+           COLORS_BG_BLACK,
+           COLORS_ORANGE,
+           COLORS_RESET
     );
     printf("%s Overflow %s [%i] %s%s|%s ",
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_RESET,
+           COLORS_BG_BLACK,
+           COLORS_RESET,
            cp->overflow,
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_ORANGE,
-           XCODE_COLORS_RESET
+           COLORS_BG_BLACK,
+           COLORS_ORANGE,
+           COLORS_RESET
     );
     printf("%s Underflow %s [%i] %s%s|%s ",
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_RESET,
+           COLORS_BG_BLACK,
+           COLORS_RESET,
            cp->underflow,
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_ORANGE,
-           XCODE_COLORS_RESET
+           COLORS_BG_BLACK,
+           COLORS_ORANGE,
+           COLORS_RESET
     );
     printf("%s PC %s [%i] %s%s|%s ",
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_RESET,
+           COLORS_BG_BLACK,
+           COLORS_RESET,
            cp->registers->pc + n,
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_ORANGE,
-           XCODE_COLORS_RESET
+           COLORS_BG_BLACK,
+           COLORS_ORANGE,
+           COLORS_RESET
     );
     printf("%s EX %s [%i] %s%s|%s ",
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_RESET,
+           COLORS_BG_BLACK,
+           COLORS_RESET,
            cp->registers->ex,
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_ORANGE,
-           XCODE_COLORS_RESET
+           COLORS_BG_BLACK,
+           COLORS_ORANGE,
+           COLORS_RESET
     );
     
     printf("\n\n\t\t\t%s    Generic Registers     %s\n\n",
-        XCODE_COLORS_BG_BLACK,
-        XCODE_COLORS_RESET
+        COLORS_BG_BLACK,
+        COLORS_RESET
     );
     
     
@@ -473,10 +452,10 @@ void dump_registers(cpu* cp, u8 n) {
         //cp->registers->values[k]
         
         printf("\t\t\t[%s%s %i %s]-> Address: [0x0%x - %c], Value: [0x0%x], Decimal: [%i]\n",
-               XCODE_COLORS_ORANGE,
-               XCODE_COLORS_BG_WHITE,
+               COLORS_ORANGE,
+               COLORS_BG_WHITE,
                k,
-               XCODE_COLORS_RESET,
+               COLORS_RESET,
                cp->registers->values[k][0],
                (char)cp->registers->values[k][2],
                cp->registers->values[k][3],
@@ -486,8 +465,8 @@ void dump_registers(cpu* cp, u8 n) {
     
     
     /**printf("\n\n\t\t\t%s    Instructions     %s\n\n",
-           XCODE_COLORS_BG_BLACK,
-           XCODE_COLORS_RESET
+           COLORS_BG_BLACK,
+           COLORS_RESET
     );
     for(int i = 0; i<cp->program->size; i++) {
         char str[20];
@@ -495,21 +474,21 @@ void dump_registers(cpu* cp, u8 n) {
         if (((cp->registers->pc + n) - 1) == i)
         {
             printf("\t\t\t[%s%s %s %s] <-- %s[PC]%s ",
-                   XCODE_COLORS_BLACK,
-                   XCODE_COLORS_BG_WHITE,
+                   COLORS_BLACK,
+                   COLORS_BG_WHITE,
                    str,
-                   XCODE_COLORS_RESET,
-                   XCODE_COLORS_ORANGE,
-                   XCODE_COLORS_RESET
+                   COLORS_RESET,
+                   COLORS_ORANGE,
+                   COLORS_RESET
             );
         }
         else
         {
             printf("\t\t\t[%s%s%s%s] ",
-                   XCODE_COLORS_BLACK,
-                   XCODE_COLORS_BG_WHITE,
+                   COLORS_BLACK,
+                   COLORS_BG_WHITE,
                    str,
-                   XCODE_COLORS_RESET
+                   COLORS_RESET
                    );
         }
     }**/
@@ -525,35 +504,46 @@ stack* create_stack() {
     
     // Initialize the memory_map array:
     // Start with 12 element sized array.
-    local_stack->memory_map = (struct memory_map_t*)malloc(sizeof(struct memory_map_t) * 12);
+    //local_stack->memory_map = (struct memory_map_t*)malloc(sizeof(struct memory_map_t) * 12 * 2);
     
-    
-    reset_stack(local_stack);
+    // 327,680 elements of 16bits each. 5MB
+    local_stack->memory = (u16**)malloc(65535 * sizeof(u16*));
+
+    u16 previous_addr = 0xffff;
+
+    for (int i = 0; i<65535; i++) {
+        local_stack->memory[i] = malloc(2*sizeof(u16));
+        local_stack->memory[i][0] = previous_addr - 1;
+        local_stack->memory[i][1] = 0;
+    }
+
+    //reset_stack(local_stack);
     return local_stack;
 }
 
 void reset_stack(stack* local_stack) {
-    local_stack->starting_addr = 0xffff;
-    local_stack->sp            = local_stack->starting_addr;
+    local_stack->starting_addr[0] = 0xffff;
+    local_stack->starting_addr[1] = 0;
+    local_stack->sp            = local_stack->starting_addr[0];
     
     /** Initialize the stack **/
-    local_stack->memory[local_stack->starting_addr] = NULL; // Initialize the starting address.
+    //local_stack->memory[local_stack->starting_addr] = 0; // Initialize the starting address.
 }
 
 void push_stack(stack* st, int value) {
     // Push a new item on the stack.
-    st->sp = st->sp++; // Increment the pointer.
-    st->memory[st->sp] = (u16*)value;
+    //st->sp = st->sp++; // Increment the pointer.
+    //st->memory[st->sp] = (u16*)value;
 }
 
 u16 pop_stack(stack* st) {
     // Remove the top most value;
     // We can't actually remove it,
     // so we'll nullify it, but return the old value.
-    u16 old_value = *st->memory[st->sp];
-    st->memory[st->sp] = NULL;
-    st->sp = st->sp - 1;
-    return old_value;
+    //u16 old_value = *st->memory[st->sp];
+    //st->memory[st->sp] = NULL;
+    //st->sp = st->sp - 1;
+    return 1;
 }
 
 u16 pick_stack(stack* st) { // Doesn't touch SP
@@ -565,7 +555,12 @@ u16 peek_stack(stack* st) { // Doesn't touch SP
 }
 
 void free_stack(stack* local_stack) {
-    free(local_stack->memory_map);
+
+    for(int i = 0; i<65535; i++) {
+        free(local_stack->memory[i]);
+    }
+
+    free(local_stack->memory);
     free(local_stack);
 }
 
@@ -585,19 +580,13 @@ program* create_program() {
 
 void load_program(program* local_pr, char path[]) {
     
-    
-        //10000
-        //10
-        //char buf[40];
         int i = 0;
-        //int rv;
         int num_values;
         unsigned int num[80];
-        //u16 hex = 0;
-        FILE *file = fopen(path, "rt");
+        FILE *file = fopen(path, "r");
         if (path) {
             
-            printf("%s** Loading Program... **%s\n", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+            printf("%s** Loading Program... **%s\n", COLORS_BG_BLACK, COLORS_RESET_BG);
             
             while (i < 80 && fscanf(file,"%x",&num[i]) != EOF)
                 i++;
@@ -619,7 +608,7 @@ void load_program(program* local_pr, char path[]) {
             
             //printf("0x%x", *buf);
             
-            printf("\n%s** Done Loading Program. **%s\n\n", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+            printf("\n%s** Done Loading Program. **%s\n\n", COLORS_BG_BLACK, COLORS_RESET_BG);
             
             //hex = (u16)"0x" + *buf;
         } else {
@@ -691,28 +680,41 @@ void debug_opcode(cpu* local_cpu, char *opcode, u16 n) {
     // Get the n arguments.
     u16 *args = get_args(local_cpu, n);
     
-    printf("%s\n\n\tInstruction/OpCode\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+    printf("%s\n\n\tInstruction/OpCode\n\n%s", COLORS_BG_BLACK, COLORS_RESET_BG);
 
     printf(
            "\t%s%s%s [%s%c%s] %s%s0x0%x%s, 0x0%x\n", // String & Replacement Flags
-           XCODE_COLORS_BG_BLACK,
+           COLORS_BG_BLACK,
            opcode,
-           XCODE_COLORS_RESET_BG,
-           XCODE_COLORS_LIGHT_BLUE,
+           COLORS_RESET_BG,
+           COLORS_LIGHT_BLUE,
            get_register_value(local_cpu, args[0], 2),
-           XCODE_COLORS_RESET,
-           XCODE_COLORS_BLACK,
-           XCODE_COLORS_BG_WHITE,
+           COLORS_RESET,
+           COLORS_BLACK,
+           COLORS_BG_WHITE,
            get_register_value(local_cpu, args[0], 0),
-           XCODE_COLORS_RESET,
+           COLORS_RESET,
            get_register_value(local_cpu, args[0], 3)
     );
     
     dump_registers(local_cpu, n);
     
-    printf("%s\n\n\tEND\n\n%s", XCODE_COLORS_BG_BLACK, XCODE_COLORS_RESET_BG);
+    printf("%s\n\n\tEND\n\n%s", COLORS_BG_BLACK, COLORS_RESET_BG);
     
     free(args);
 #endif
 }
 
+
+int main(int argc, char * argv[]) {
+   
+    cpu* local_cpu = create_cpu();
+
+    // Load program:
+    load_program(local_cpu->program, "C:\\Users\\Daniel\\Documents\\Projects\\snowbird\\programs\\div");
+    
+    // Run Program:
+    run_cpu(local_cpu);
+    
+    free_cpu(local_cpu);
+}
