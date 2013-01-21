@@ -3,3 +3,15 @@ output/
 Release/
 SnowBird.ppj
 SnowBird.ppx
+SnowBird.sdf
+*.sdf
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.tag
+*.psess
+*.ppx
+*.opensdf
+*.exe
+*.suo
+*.vsp
